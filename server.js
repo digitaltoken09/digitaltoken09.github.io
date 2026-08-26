@@ -9,7 +9,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
 const DATABASE_URL = process.env.DATABASE_URL;
-
+const PI_API_KEY = process.env.PI_API_KEY;
 const MINING_RATE = 0.25; // ADT per hour
 const DAILY_LIMIT = 6.0;
 
