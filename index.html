@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <title>ADT Mining</title>
 
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
@@ -128,6 +127,12 @@
       font-weight: bold;
       margin: 12px 0;
     }
+
+    .soon {
+      text-align: center;
+      color: #777;
+      padding: 12px;
+    }
   </style>
 </head>
 
@@ -139,8 +144,6 @@
 </header>
 
 <main>
-
-  <!-- PI ACCOUNT -->
 
   <section class="card">
     <h2>Pi Account</h2>
@@ -154,8 +157,6 @@
     </button>
   </section>
 
-
-  <!-- ADT WALLET -->
 
   <section class="card">
     <h2>ADT Wallet</h2>
@@ -184,8 +185,6 @@
   </section>
 
 
-  <!-- MINING -->
-
   <section class="card">
     <h2>⛏️ ADT Mining</h2>
 
@@ -212,8 +211,6 @@
   </section>
 
 
-  <!-- REFERRAL -->
-
   <section class="card">
     <h2>👥 Referral</h2>
 
@@ -221,21 +218,15 @@
       Your Pi username will be your ADT referral identity.
     </p>
 
-    <strong id="referral">
-      —
-    </strong>
+    <strong id="referral">—</strong>
   </section>
 
-
-  <!-- CHAT -->
 
   <section class="card">
     <h2>💬 Miner Chat</h2>
 
     <div id="chat" class="chat">
-      <p>
-        Miner chat will appear here.
-      </p>
+      <p>Miner chat will appear here.</p>
     </div>
 
     <input
@@ -251,16 +242,12 @@
   </section>
 
 
-  <!-- MARKETPLACE -->
-
   <section class="card">
     <h2>🐾 Digital Pet Marketplace</h2>
 
     <div class="pet">
 
-      <div class="pet-icon">
-        🐶
-      </div>
+      <div class="pet-icon">🐶</div>
 
       <div class="pet-name">
         ADT Digital Pet
@@ -287,8 +274,6 @@
   </section>
 
 
-  <!-- SUPPLY -->
-
   <section class="card">
     <h2>ADT Supply</h2>
 
@@ -312,10 +297,6 @@
  * =========================================================
  * ADT BACKEND
  * =========================================================
- *
- * IMPORTANT:
- * GitHub Pages cannot serve /api/*.
- * All API requests must go to Render.
  */
 
 const API_BASE =
@@ -371,7 +352,8 @@ async function loginPi() {
         incompletePayment
       );
 
-    piUser = auth.user;
+    piUser =
+      auth.user;
 
     piAccessToken =
       auth.accessToken;
@@ -398,68 +380,57 @@ async function loginPi() {
     ).disabled = false;
 
     document.getElementById(
-      "buyPet"
-    ).disabled = false;
+      "paymentStatus"
+    ).textContent =
+      "Ready to purchase ADT Digital Pet.";
 
     document.getElementById(
       "miningStatus"
     ).textContent =
       "Ready to start your ADT mining cycle.";
 
-    document.getElementById(
-      "paymentStatus"
-    ).textContent =
-      "Ready to purchase ADT Digital Pet.";
-
 
     /*
      * Register user in Render backend.
      */
 
-    try {
+    const response =
+      await fetch(
+        API_BASE + "/api/users",
+        {
+          method: "POST",
 
-      const response =
-        await fetch(
-          `${API_BASE}/api/users`,
-          {
-            method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
+          body: JSON.stringify({
+            piUsername:
+              piUser.username
+          })
+        }
+      );
 
-            body: JSON.stringify({
-              piUsername:
-                piUser.username
-            })
-          }
-        );
 
-      const data =
-        await response.json();
+    if (!response.ok) {
 
-      if (!response.ok) {
-
-        console.error(
-          "Backend registration failed:",
-          data
-        );
-
-      }
-
-    } catch (error) {
+      const text =
+        await response.text();
 
       console.error(
-        "Backend connection error:",
-        error
+        "Backend registration error:",
+        text
       );
 
     }
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Pi authentication error:",
+      error
+    );
 
     status.textContent =
       "Pi authentication failed.";
@@ -514,7 +485,7 @@ async function startMining() {
 
     const response =
       await fetch(
-        `${API_BASE}/api/mining/start`,
+        API_BASE + "/api/mining/start",
         {
           method: "POST",
 
@@ -561,7 +532,10 @@ async function startMining() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Mining start error:",
+      error
+    );
 
     status.textContent =
       "Mining server error: " +
@@ -601,7 +575,7 @@ async function claimADT() {
 
     const response =
       await fetch(
-        `${API_BASE}/api/mining/stop`,
+        API_BASE + "/api/mining/stop",
         {
           method: "POST",
 
@@ -635,15 +609,17 @@ async function claimADT() {
     document.getElementById(
       "available"
     ).textContent =
-      Number(data.balanceADT)
-        .toFixed(8) +
+      Number(
+        data.balanceADT
+      ).toFixed(8) +
       " ADT";
 
 
     status.textContent =
       "✅ Mining completed. Earned " +
-      Number(data.earnedADT)
-        .toFixed(8) +
+      Number(
+        data.earnedADT
+      ).toFixed(8) +
       " ADT.";
 
 
@@ -659,7 +635,10 @@ async function claimADT() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Claim error:",
+      error
+    );
 
     status.textContent =
       "Claim error: " +
@@ -745,7 +724,7 @@ async function buyPet() {
 
 
     /*
-     * PAYMENT APPROVAL
+     * SERVER APPROVAL
      */
 
     onReadyForServerApproval:
@@ -759,7 +738,8 @@ async function buyPet() {
 
           const response =
             await fetch(
-              `${API_BASE}/api/payments/approve`,
+              API_BASE +
+              "/api/payments/approve",
               {
                 method: "POST",
 
@@ -796,7 +776,10 @@ async function buyPet() {
 
         } catch (error) {
 
-          console.error(error);
+          console.error(
+            "Payment approval error:",
+            error
+          );
 
           status.textContent =
             "Payment approval failed: " +
@@ -808,7 +791,7 @@ async function buyPet() {
 
 
     /*
-     * PAYMENT COMPLETION
+     * SERVER COMPLETION
      */
 
     onReadyForServerCompletion:
@@ -825,7 +808,8 @@ async function buyPet() {
 
           const response =
             await fetch(
-              `${API_BASE}/api/payments/complete`,
+              API_BASE +
+              "/api/payments/complete",
               {
                 method: "POST",
 
@@ -884,7 +868,10 @@ async function buyPet() {
 
         } catch (error) {
 
-          console.error(error);
+          console.error(
+            "Payment completion error:",
+            error
+          );
 
           status.textContent =
             "Payment completion failed: " +
@@ -943,7 +930,10 @@ async function buyPet() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Create payment error:",
+      error
+    );
 
     status.textContent =
       "Unable to create Pi payment.";
@@ -955,7 +945,7 @@ async function buyPet() {
 
 /*
  * =========================================================
- * MINER CHAT
+ * CHAT
  * =========================================================
  */
 
@@ -985,14 +975,19 @@ function sendMessage() {
 
 
   const item =
-    document.createElement("p");
+    document.createElement(
+      "p"
+    );
 
 
   item.textContent =
-    "You: " + message;
+    "You: " +
+    message;
 
 
-  chat.appendChild(item);
+  chat.appendChild(
+    item
+  );
 
 
   input.value = "";
