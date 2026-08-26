@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>ADT Mining</title>
+
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f3f8;
+      color: #242033;
+    }
+
+    header {
+      padding: 22px 18px;
+      background: #673ab7;
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      opacity: .9;
+    }
+
+    main {
+      max-width: 650px;
+      margin: auto;
+      padding: 18px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 16px;
+      border-radius: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,.08);
+    }
+
+    .balance {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .pending {
+      color: #777;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #673ab7;
+      color: white;
+    }
+
+    .secondary {
+      background: #eee;
+      color: #555;
+    }
+
+    button:disabled {
+      opacity: .45;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f1eef7;
+      border-radius: 10px;
+    }
+
+    .chat {
+      height: 170px;
+      overflow-y: auto;
+      background: #f7f7f7;
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
+    .soon {
+      text-align: center;
+      color: #777;
+      padding: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>ADT Mining</h1>
+  <p>Alberto Digital Token</p>
+</header>
+
+<main>
+
+  <!-- PI ACCOUNT -->
+
+  <section class="card">
+
+    <h2>Pi Account</h2>
+
+    <p id="userStatus">
+      Not connected
+    </p>
+
+    <button
+      id="piLogin"
+      class="primary">
+      Sign in with Pi
+    </button>
+
+  </section>
+
+
+  <!-- ADT WALLET -->
+
+  <section class="card">
+
+    <h2>ADT Wallet</h2>
+
+    <p>Available</p>
+
+    <div
+      id="available"
+      class="balance">
+      0.00 ADT
+    </div>
+
+    <p class="pending">
+      Pending: <span id="pending">0.00</span> ADT
+    </p>
+
+    <button
+      class="secondary"
+      disabled>
+      Send ADT — Coming Soon
+    </button>
+
+    <button
+      class="secondary"
+      disabled>
+      Swap ADT / Pi — Coming Soon
+    </button>
+
+    <button
+      class="secondary"
+      disabled>
+      Withdraw — Coming Soon
+    </button>
+
+  </section>
+
+
+  <!-- MINING -->
+
+  <section class="card">
+
+    <h2>⛏️ ADT Mining</h2>
+
+    <p>
+      Mining cycle:
+      <strong>24 hours</strong>
+    </p>
+
+    <div
+      id="miningStatus"
+      class="status">
+      Sign in with Pi to start mining.
+    </div>
+
+    <button
+      id="startMining"
+      class="primary"
+      disabled>
+      Start 24H Mining
+    </button>
+
+    <button
+      id="claim"
+      class="primary"
+      disabled>
+      Claim ADT
+    </button>
+
+    <button
+      id="mineAgain"
+      class="primary"
+      disabled>
+      Mining Again
+    </button>
+
+  </section>
+
+
+  <!-- REFERRAL -->
+
+  <section class="card">
+
+    <h2>👥 Referral</h2>
+
+    <p>
+      Your Pi username will be your ADT referral identity.
+    </p>
+
+    <strong id="referral">
+      —
+    </strong>
+
+  </section>
+
+
+  <!-- CHAT -->
+
+  <section class="card">
+
+    <h2>💬 Miner Chat</h2>
+
+    <div
+      id="chat"
+      class="chat">
+
+      <p>
+        Miner chat will appear here.
+      </p>
+
+    </div>
+
+    <input
+      id="message"
+      placeholder="Message miners..."
+      maxlength="300"
+      disabled>
+
+    <button
+      id="send"
+      class="primary"
+      disabled>
+      Send
+    </button>
+
+  </section>
+
+
+  <!-- MARKETPLACE -->
+
+  <section class="card">
+
+    <h2>🐾 Digital Pet Marketplace</h2>
+
+    <p>
+      Our digital pet marketplace will use ADT
+      as its planned in-game utility token.
+    </p>
+
+    <div class="soon">
+      Marketplace — Coming Soon
+    </div>
+
+  </section>
+
+
+  <!-- SUPPLY -->
+
+  <section class="card">
+
+    <h2>ADT Supply</h2>
+
+    <p>
+      Maximum Supply:
+      <strong>30,000,000 ADT</strong>
+    </p>
+
+    <p>
+      Planned Mining Allocation:
+      <strong>15,000,000 ADT</strong>
+    </p>
+
+  </section>
+
+</main>
+
+
+<script>
+
+let piUser = null;
+let piAccessToken = null;
+
+
+/*
+ * Initialize Pi SDK.
+ *
+ * Testnet / Sandbox development only.
+ */
+
+try {
+
+  Pi.init({
+    version: "2.0",
+    sandbox: true
+  });
+
+} catch (error) {
+
+  console.error(
+    "Pi SDK initialization error:",
+    error
+  );
+
+}
+
+
+/*
+ * Pi authentication
+ */
+
+async function loginPi() {
+
+  const status =
+    document.getElementById("userStatus");
+
+  try {
+
+    status.textContent =
+      "Connecting to Pi...";
+
+    const auth =
+      await Pi.authenticate(
+        ["username"],
+        incompletePayment
+      );
+
+    piUser = auth.user;
+
+    piAccessToken =
+      auth.accessToken;
+
+    status.textContent =
+      "Connected: @" +
+      piUser.username;
+
+    document.getElementById(
+      "referral"
+    ).textContent =
+      piUser.username;
+
+    document.getElementById(
+      "startMining"
+    ).disabled = false;
+
+    document.getElementById(
+      "message"
+    ).disabled = false;
+
+    document.getElementById(
+      "send"
+    ).disabled = false;
+
+    document.getElementById(
+      "miningStatus"
+    ).textContent =
+      "Ready to start your ADT mining cycle.";
+
+  } catch (error) {
+
+    console.error(error);
+
+    status.textContent =
+      "Pi authentication failed.";
+
+  }
+
+}
+
+
+/*
+ * Pi incomplete payment callback.
+ *
+ * Payment reconciliation will be added
+ * when the server-side Pi payment module
+ * is implemented.
+ */
+
+function incompletePayment(payment) {
+
+  console.log(
+    "Incomplete payment:",
+    payment
+  );
+
+}
+
+
+/*
+ * Start mining
+ *
+ * IMPORTANT:
+ * The backend must be authoritative.
+ * Browser countdowns must not create ADT.
+ */
+
+async function startMining() {
+
+  if (!piAccessToken) {
+    return;
+  }
+
+  document.getElementById(
+    "miningStatus"
+  ).textContent =
+    "Connecting to ADT mining server...";
+
+  /*
+   * Backend endpoint:
+   *
+   * POST /api/mining/start
+   *
+   * We will connect the live backend
+   * after hosting it.
+   */
+
+  console.log(
+    "Mining start requested."
+  );
+
+}
+
+
+/*
+ * Claim
+ */
+
+async function claimADT() {
+
+  if (!piAccessToken) {
+    return;
+  }
+
+  console.log(
+    "ADT claim requested."
+  );
+
+}
+
+
+/*
+ * Mining again
+ */
+
+async function miningAgain() {
+
+  document.getElementById(
+    "mineAgain"
+  ).disabled = true;
+
+  await startMining();
+
+}
+
+
+/*
+ * Chat
+ */
+
+function sendMessage() {
+
+  const input =
+    document.getElementById(
+      "message"
+    );
+
+  const message =
+    input.value.trim();
+
+  if (!message) {
+    return;
+  }
+
+  /*
+   * Real-time chat backend will be
+   * connected in the next stage.
+   */
+
+  const chat =
+    document.getElementById(
+      "chat"
+    );
+
+  const item =
+    document.createElement("p");
+
+  item.textContent =
+    "You: " + message;
+
+  chat.appendChild(item);
+
+  input.value = "";
+
+}
+
+
+document.getElementById(
+  "piLogin"
+).addEventListener(
+  "click",
+  loginPi
+);
+
+
+document.getElementById(
+  "startMining"
+).addEventListener(
+  "click",
+  startMining
+);
+
+
+document.getElementById(
+  "claim"
+).addEventListener(
+  "click",
+  claimADT
+);
+
+
+document.getElementById(
+  "mineAgain"
+).addEventListener(
+  "click",
+  miningAgain
+);
+
+
+document.getElementById(
+  "send"
+).addEventListener(
+  "click",
+  sendMessage
+);
+
+</script>
+
+</body>
+</html>
