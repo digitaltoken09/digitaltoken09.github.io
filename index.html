@@ -108,12 +108,6 @@
       border-radius: 10px;
     }
 
-    .soon {
-      text-align: center;
-      color: #777;
-      padding: 12px;
-    }
-
     .pet {
       text-align: center;
       padding: 10px;
@@ -149,33 +143,26 @@
   <!-- PI ACCOUNT -->
 
   <section class="card">
-
     <h2>Pi Account</h2>
 
     <p id="userStatus">
       Not connected
     </p>
 
-    <button
-      id="piLogin"
-      class="primary">
+    <button id="piLogin" class="primary">
       Sign in with Pi
     </button>
-
   </section>
 
 
   <!-- ADT WALLET -->
 
   <section class="card">
-
     <h2>ADT Wallet</h2>
 
     <p>Available</p>
 
-    <div
-      id="available"
-      class="balance">
+    <div id="available" class="balance">
       0.00 ADT
     </div>
 
@@ -183,31 +170,23 @@
       Pending: <span id="pending">0.00</span> ADT
     </p>
 
-    <button
-      class="secondary"
-      disabled>
+    <button class="secondary" disabled>
       Send ADT — Coming Soon
     </button>
 
-    <button
-      class="secondary"
-      disabled>
+    <button class="secondary" disabled>
       Swap ADT / Pi — Coming Soon
     </button>
 
-    <button
-      class="secondary"
-      disabled>
+    <button class="secondary" disabled>
       Withdraw — Coming Soon
     </button>
-
   </section>
 
 
   <!-- MINING -->
 
   <section class="card">
-
     <h2>⛏️ ADT Mining</h2>
 
     <p>
@@ -215,40 +194,27 @@
       <strong>24 hours</strong>
     </p>
 
-    <div
-      id="miningStatus"
-      class="status">
+    <div id="miningStatus" class="status">
       Sign in with Pi to start mining.
     </div>
 
-    <button
-      id="startMining"
-      class="primary"
-      disabled>
+    <button id="startMining" class="primary" disabled>
       Start 24H Mining
     </button>
 
-    <button
-      id="claim"
-      class="primary"
-      disabled>
+    <button id="claim" class="primary" disabled>
       Claim ADT
     </button>
 
-    <button
-      id="mineAgain"
-      class="primary"
-      disabled>
+    <button id="mineAgain" class="primary" disabled>
       Mining Again
     </button>
-
   </section>
 
 
   <!-- REFERRAL -->
 
   <section class="card">
-
     <h2>👥 Referral</h2>
 
     <p>
@@ -258,46 +224,36 @@
     <strong id="referral">
       —
     </strong>
-
   </section>
 
 
   <!-- CHAT -->
 
   <section class="card">
-
     <h2>💬 Miner Chat</h2>
 
-    <div
-      id="chat"
-      class="chat">
-
+    <div id="chat" class="chat">
       <p>
         Miner chat will appear here.
       </p>
-
     </div>
 
     <input
       id="message"
       placeholder="Message miners..."
       maxlength="300"
-      disabled>
+      disabled
+    >
 
-    <button
-      id="send"
-      class="primary"
-      disabled>
+    <button id="send" class="primary" disabled>
       Send
     </button>
-
   </section>
 
 
   <!-- MARKETPLACE -->
 
   <section class="card">
-
     <h2>🐾 Digital Pet Marketplace</h2>
 
     <div class="pet">
@@ -319,27 +275,21 @@
         0.1 Test-Pi
       </div>
 
-      <button
-        id="buyPet"
-        class="primary">
+      <button id="buyPet" class="primary">
         🛒 Buy with Pi — 0.1 Test-Pi
       </button>
 
-      <div
-        id="paymentStatus"
-        class="status">
+      <div id="paymentStatus" class="status">
         Sign in with Pi to purchase your pet.
       </div>
 
     </div>
-
   </section>
 
 
   <!-- SUPPLY -->
 
   <section class="card">
-
     <h2>ADT Supply</h2>
 
     <p>
@@ -351,7 +301,6 @@
       Planned Mining Allocation:
       <strong>15,000,000 ADT</strong>
     </p>
-
   </section>
 
 </main>
@@ -359,14 +308,28 @@
 
 <script>
 
+/*
+ * =========================================================
+ * ADT BACKEND
+ * =========================================================
+ *
+ * IMPORTANT:
+ * GitHub Pages cannot serve /api/*.
+ * All API requests must go to Render.
+ */
+
+const API_BASE =
+  "https://digitaltoken09-github-io.onrender.com";
+
+
 let piUser = null;
 let piAccessToken = null;
 
 
 /*
- * Pi SDK initialization
- *
- * Sandbox/Testnet mode for testing.
+ * =========================================================
+ * PI SDK INITIALIZATION
+ * =========================================================
  */
 
 try {
@@ -387,7 +350,9 @@ try {
 
 
 /*
- * Pi authentication
+ * =========================================================
+ * PI LOGIN
+ * =========================================================
  */
 
 async function loginPi() {
@@ -433,6 +398,10 @@ async function loginPi() {
     ).disabled = false;
 
     document.getElementById(
+      "buyPet"
+    ).disabled = false;
+
+    document.getElementById(
       "miningStatus"
     ).textContent =
       "Ready to start your ADT mining cycle.";
@@ -442,29 +411,47 @@ async function loginPi() {
     ).textContent =
       "Ready to purchase ADT Digital Pet.";
 
+
     /*
-     * Register user in our backend.
+     * Register user in Render backend.
      */
 
     try {
 
-      await fetch(
-        "/api/users",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            piUsername: piUser.username
-          })
-        }
-      );
+      const response =
+        await fetch(
+          `${API_BASE}/api/users`,
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              piUsername:
+                piUser.username
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+
+        console.error(
+          "Backend registration failed:",
+          data
+        );
+
+      }
 
     } catch (error) {
 
       console.error(
-        "Backend user registration error:",
+        "Backend connection error:",
         error
       );
 
@@ -483,7 +470,9 @@ async function loginPi() {
 
 
 /*
- * Incomplete payment callback.
+ * =========================================================
+ * INCOMPLETE PAYMENT
+ * =========================================================
  */
 
 function incompletePayment(payment) {
@@ -497,59 +486,78 @@ function incompletePayment(payment) {
 
 
 /*
- * Start mining
+ * =========================================================
+ * START MINING
+ * =========================================================
  */
 
 async function startMining() {
 
   if (!piUser || !piAccessToken) {
+
     return;
+
   }
+
 
   const status =
     document.getElementById(
       "miningStatus"
     );
 
+
   status.textContent =
     "Connecting to ADT mining server...";
+
 
   try {
 
     const response =
       await fetch(
-        "/api/mining/start",
+        `${API_BASE}/api/mining/start`,
         {
           method: "POST",
+
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
+
           body: JSON.stringify({
-            piUsername: piUser.username
+            piUsername:
+              piUser.username
           })
         }
       );
 
+
     const data =
       await response.json();
 
+
     if (!response.ok) {
+
       throw new Error(
         data.error ||
         "Unable to start mining."
       );
+
     }
+
 
     status.textContent =
       "⛏️ Mining active — 0.25 ADT/hour.";
+
 
     document.getElementById(
       "startMining"
     ).disabled = true;
 
+
     document.getElementById(
       "claim"
     ).disabled = false;
+
 
   } catch (error) {
 
@@ -565,67 +573,89 @@ async function startMining() {
 
 
 /*
- * Claim ADT
+ * =========================================================
+ * CLAIM ADT
+ * =========================================================
  */
 
 async function claimADT() {
 
   if (!piUser || !piAccessToken) {
+
     return;
+
   }
+
 
   const status =
     document.getElementById(
       "miningStatus"
     );
 
+
   status.textContent =
     "Checking mining session...";
+
 
   try {
 
     const response =
       await fetch(
-        "/api/mining/stop",
+        `${API_BASE}/api/mining/stop`,
         {
           method: "POST",
+
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
+
           body: JSON.stringify({
-            piUsername: piUser.username
+            piUsername:
+              piUser.username
           })
         }
       );
 
+
     const data =
       await response.json();
 
+
     if (!response.ok) {
+
       throw new Error(
         data.error ||
         "Unable to claim ADT."
       );
+
     }
+
 
     document.getElementById(
       "available"
     ).textContent =
-      Number(data.balanceADT).toFixed(8) +
+      Number(data.balanceADT)
+        .toFixed(8) +
       " ADT";
+
 
     status.textContent =
       "✅ Mining completed. Earned " +
-      Number(data.earnedADT).toFixed(8) +
+      Number(data.earnedADT)
+        .toFixed(8) +
       " ADT.";
+
 
     document.getElementById(
       "claim"
     ).disabled = true;
 
+
     document.getElementById(
       "mineAgain"
     ).disabled = false;
+
 
   } catch (error) {
 
@@ -641,7 +671,9 @@ async function claimADT() {
 
 
 /*
- * Mining again
+ * =========================================================
+ * MINING AGAIN
+ * =========================================================
  */
 
 async function miningAgain() {
@@ -656,9 +688,11 @@ async function miningAgain() {
 
 
 /*
- * Buy ADT Digital Pet
+ * =========================================================
+ * BUY DIGITAL PET
+ * =========================================================
  *
- * Test payment:
+ * TEST PAYMENT:
  * 0.1 Test-Pi
  */
 
@@ -669,16 +703,20 @@ async function buyPet() {
       "paymentStatus"
     );
 
+
   if (!piUser || !piAccessToken) {
 
     status.textContent =
       "Please sign in with Pi first.";
 
     return;
+
   }
+
 
   status.textContent =
     "Opening Pi payment...";
+
 
   const paymentData = {
 
@@ -688,6 +726,7 @@ async function buyPet() {
       "ADT Digital Pet",
 
     metadata: {
+
       product:
         "adt-digital-pet",
 
@@ -696,6 +735,7 @@ async function buyPet() {
 
       username:
         piUser.username
+
     }
 
   };
@@ -705,8 +745,7 @@ async function buyPet() {
 
 
     /*
-     * Payment created.
-     * Ask backend to approve it.
+     * PAYMENT APPROVAL
      */
 
     onReadyForServerApproval:
@@ -715,11 +754,12 @@ async function buyPet() {
         status.textContent =
           "Approving Test-Pi payment...";
 
+
         try {
 
           const response =
             await fetch(
-              "/api/payments/approve",
+              `${API_BASE}/api/payments/approve`,
               {
                 method: "POST",
 
@@ -735,18 +775,24 @@ async function buyPet() {
               }
             );
 
+
           const data =
             await response.json();
 
+
           if (!response.ok) {
+
             throw new Error(
               data.error ||
               "Payment approval failed."
             );
+
           }
+
 
           status.textContent =
             "Payment approved. Confirm in Pi.";
+
 
         } catch (error) {
 
@@ -762,8 +808,7 @@ async function buyPet() {
 
 
     /*
-     * User has approved payment.
-     * Complete payment on backend.
+     * PAYMENT COMPLETION
      */
 
     onReadyForServerCompletion:
@@ -775,11 +820,12 @@ async function buyPet() {
         status.textContent =
           "Completing Test-Pi payment...";
 
+
         try {
 
           const response =
             await fetch(
-              "/api/payments/complete",
+              `${API_BASE}/api/payments/complete`,
               {
                 method: "POST",
 
@@ -789,6 +835,7 @@ async function buyPet() {
                 },
 
                 body: JSON.stringify({
+
                   paymentId:
                     paymentId,
 
@@ -800,31 +847,40 @@ async function buyPet() {
 
                   product:
                     "adt-digital-pet"
+
                 })
               }
             );
 
+
           const data =
             await response.json();
 
+
           if (!response.ok) {
+
             throw new Error(
               data.error ||
               "Payment completion failed."
             );
+
           }
+
 
           status.textContent =
             "✅ ADT Digital Pet purchased successfully!";
+
 
           document.getElementById(
             "buyPet"
           ).disabled = true;
 
+
           document.getElementById(
             "buyPet"
           ).textContent =
             "✅ Pet Purchased";
+
 
         } catch (error) {
 
@@ -840,7 +896,7 @@ async function buyPet() {
 
 
     /*
-     * User cancelled payment.
+     * PAYMENT CANCELLED
      */
 
     onCancel:
@@ -858,7 +914,7 @@ async function buyPet() {
 
 
     /*
-     * Payment error.
+     * PAYMENT ERROR
      */
 
     onError:
@@ -898,7 +954,9 @@ async function buyPet() {
 
 
 /*
- * Chat
+ * =========================================================
+ * MINER CHAT
+ * =========================================================
  */
 
 function sendMessage() {
@@ -908,25 +966,34 @@ function sendMessage() {
       "message"
     );
 
+
   const message =
     input.value.trim();
 
+
   if (!message) {
+
     return;
+
   }
+
 
   const chat =
     document.getElementById(
       "chat"
     );
 
+
   const item =
     document.createElement("p");
+
 
   item.textContent =
     "You: " + message;
 
+
   chat.appendChild(item);
+
 
   input.value = "";
 
@@ -934,7 +1001,9 @@ function sendMessage() {
 
 
 /*
- * Event listeners
+ * =========================================================
+ * EVENT LISTENERS
+ * =========================================================
  */
 
 document.getElementById(
