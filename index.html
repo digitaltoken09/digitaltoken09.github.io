@@ -1621,9 +1621,11 @@ async function startMining(){
 
 function startMiningUI(){
 
-  $("miningMachine")
-    .classList
-    .remove("mining-off");
+  const machine =
+  $("miningMachine");
+
+machine.className =
+  "mining-machine";
 
   $("sessionLabel").textContent =
     "MINING";
