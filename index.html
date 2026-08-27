@@ -11,7 +11,101 @@
     * {
       box-sizing: border-box;
     }
+.mining-machine{
+  position:relative;
+  width:240px;
+  height:240px;
+  margin:20px auto;
+}
 
+.outer-ring{
+  position:absolute;
+  width:240px;
+  height:240px;
+  border:8px solid #673ab7;
+  border-radius:50%;
+  animation:spin 12s linear infinite;
+  box-shadow:0 0 30px rgba(103,58,183,.5);
+}
+
+.inner-ring{
+  position:absolute;
+  top:20px;
+  left:20px;
+  width:200px;
+  height:200px;
+  border:4px solid #9c27b0;
+  border-radius:50%;
+  animation:spinReverse 8s linear infinite;
+}
+
+.fan{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:120px;
+  height:120px;
+  margin-left:-60px;
+  margin-top:-60px;
+  animation:fanSpin 2s linear infinite;
+}
+
+.blade{
+  position:absolute;
+  width:28px;
+  height:60px;
+  background:#673ab7;
+  border-radius:20px;
+  left:46px;
+  top:0;
+}
+
+.b2{transform:rotate(90deg);}
+.b3{transform:rotate(180deg);}
+.b4{transform:rotate(270deg);}
+
+.core{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:90px;
+  height:90px;
+  margin-left:-45px;
+  margin-top:-45px;
+  border-radius:50%;
+  background:#673ab7;
+  color:white;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 20px #673ab7,
+    0 0 40px #673ab7,
+    0 0 60px #673ab7;
+  animation:pulse 2s infinite;
+}
+
+@keyframes fanSpin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+@keyframes spinReverse{
+  from{transform:rotate(360deg);}
+  to{transform:rotate(0deg);}
+}
+
+@keyframes pulse{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+  100%{transform:scale(1);}
+}
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -187,7 +281,21 @@
 
   <section class="card">
     <h2>⛏️ ADT Mining</h2>
+<div class="mining-machine">
+  <div class="outer-ring"></div>
+  <div class="inner-ring"></div>
 
+  <div class="fan">
+    <div class="blade b1"></div>
+    <div class="blade b2"></div>
+    <div class="blade b3"></div>
+    <div class="blade b4"></div>
+  </div>
+
+  <div class="core">
+    ADT
+  </div>
+</div>
     <p>
       Mining cycle:
       <strong>24 hours</strong>
