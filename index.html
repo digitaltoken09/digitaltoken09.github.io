@@ -1759,10 +1759,20 @@ function updateMiningTimer(){
 ========================================================= */
 
 function miningCompletedUI(){
+MINING COMPLETED
+========================================================= */
 
-  $("miningMachine")
-    .classList
-    .add("mining-off");
+function miningCompletedUI(){
+const machine =
+  $("miningMachine");
+
+machine.className =
+  "mining-machine mining-off";
+  $("sessionLabel").textContent =
+    "COMPLETE";
+
+  $("sessionStatus").textContent =
+    "Ready to claim";
 
   $("sessionLabel").textContent =
     "COMPLETE";
