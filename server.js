@@ -6,10 +6,13 @@ const { Pool } = require("pg");
 
 const app = express();
 
+app.use(cors());
+app.use(express.json({ limit: "100kb" }));
+
 const PORT = process.env.PORT || 10000;
 
-const DATABASE_URL = process.env.DATABASE_URL || "";
-const PI_API_KEY = process.env.PI_API_KEY || "";
+const DATABASE_URL = process.env.DATABASE_URL;
+const PI_API_KEY = process.env.PI_API_KEY;
 
 /*
  * ============================================================
@@ -17,36 +20,43 @@ const PI_API_KEY = process.env.PI_API_KEY || "";
  * ============================================================
  */
 
-const APP_NAME = "Alberto Digital Token";
-
-const MINING_RATE = 0.25;          // ADT / hour
+const MINING_RATE = 0.25;
 const MINING_HOURS = 24;
-const DAILY_REWARD = MINING_RATE * MINING_HOURS;
-
-const PI_NETWORK = "sandbox";
+const DAILY_LIMIT = MINING_RATE * MINING_HOURS;
 
 /*
- * Developer test account.
+ * Testnet ONLY during development.
  *
- * IMPORTANT:
- * This is only for controlling developer-only marketplace
- * test products. Normal miners cannot access these products.
+ * Set:
+ * PI_SANDBOX=true
  *
- * Set this in Render:
- *
- * DEV_PI_USERNAME=utoy0913
+ * in Render Environment Variables.
  */
 
-const DEV_PI_USERNAME =
-  String(process.env.DEV_PI_USERNAME || "")
-    .trim()
-    .toLowerCase();
+const PI_SANDBOX =
+  String(process.env.PI_SANDBOX || "true")
+    .toLowerCase() === "true";
 
 
 /*
- * ============================================================
- * PI PLATFORM API
- * ============================================================
+ * Developer/test account.
+ *
+ * Example Render variable:
+ *
+ * ADT_TEST_USERNAME=utoy0913
+ *
+ * Only this account can see the
+ * developer-only marketplace test item.
+ */
+
+const ADT_TEST_USERNAME =
+  String(
+    process.env.ADT_TEST_USERNAME || ""
+  ).trim();
+
+
+/*
+ * Pi Platform API
  */
 
 const PI_PLATFORM_API =
@@ -83,88 +93,7 @@ async function query(text, params = []) {
 
 /*
  * ============================================================
- * BASIC HELPERS
- * ============================================================
- */
-
-function normalizeUsername(username) {
-
-  if (
-    typeof username !== "string"
-  ) {
-    return "";
-  }
-
-  return username
-    .trim()
-    .toLowerCase();
-}
-
-
-function validUsername(username) {
-
-  return /^[a-z0-9._-]{1,64}$/
-    .test(username);
-}
-
-
-function isDeveloper(username) {
-
-  return (
-    DEV_PI_USERNAME &&
-    normalizeUsername(username) ===
-      DEV_PI_USERNAME
-  );
-}
-
-
-function validWalletAddress(address) {
-
-  if (
-    typeof address !== "string"
-  ) {
-    return false;
-  }
-
-  /*
-   * Pi wallet addresses are Stellar-style
-   * public addresses beginning with G.
-   *
-   * We intentionally do NOT accept private
-   * keys or secret phrases.
-   */
-
-  return /^G[A-Z2-7]{55}$/.test(
-    address.trim()
-  );
-}
-
-
-function reputationLevel(score) {
-
-  if (score >= 900) {
-    return "LEGEND";
-  }
-
-  if (score >= 750) {
-    return "TRUSTED";
-  }
-
-  if (score >= 500) {
-    return "ESTABLISHED";
-  }
-
-  if (score >= 250) {
-    return "RISING";
-  }
-
-  return "NEW";
-}
-
-
-/*
- * ============================================================
- * PI API HELPER
+ * PI API
  * ============================================================
  */
 
@@ -175,37 +104,26 @@ async function piApiRequest(
 ) {
 
   if (!PI_API_KEY) {
-
     throw new Error(
       "PI_API_KEY is not configured."
     );
-
   }
 
   const options = {
-
     method,
-
     headers: {
-
-      Authorization:
+      "Authorization":
         `Key ${PI_API_KEY}`,
 
       "Content-Type":
         "application/json"
-
     }
-
   };
 
-
   if (body !== null) {
-
     options.body =
       JSON.stringify(body);
-
   }
-
 
   const response =
     await fetch(
@@ -213,10 +131,8 @@ async function piApiRequest(
       options
     );
 
-
   const text =
     await response.text();
-
 
   let data = {};
 
@@ -235,15 +151,15 @@ async function piApiRequest(
 
   }
 
-
   if (!response.ok) {
 
+    const message =
+      data.error_message ||
+      data.error ||
+      `Pi API request failed (${response.status}).`;
+
     const error =
-      new Error(
-        data.error_message ||
-        data.error ||
-        `Pi API request failed (${response.status}).`
-      );
+      new Error(message);
 
     error.status =
       response.status;
@@ -252,11 +168,176 @@ async function piApiRequest(
       data;
 
     throw error;
+  }
+
+  return data;
+}
+
+
+/*
+ * ============================================================
+ * PI USER VALIDATION
+ * ============================================================
+ *
+ * The frontend sends the Pi access token.
+ *
+ * The server asks Pi who owns that token.
+ *
+ * This prevents someone from simply typing
+ * another person's username.
+ * ============================================================
+ */
+
+async function verifyPiUser(
+  accessToken
+) {
+
+  if (
+    typeof accessToken !== "string" ||
+    accessToken.length < 10
+  ) {
+
+    throw new Error(
+      "Invalid Pi access token."
+    );
+  }
+
+  const response =
+    await fetch(
+      PI_PLATFORM_API + "/me",
+      {
+        method: "GET",
+
+        headers: {
+          "Authorization":
+            `Bearer ${accessToken}`
+        }
+      }
+    );
+
+  const text =
+    await response.text();
+
+  let data = {};
+
+  try {
+
+    data =
+      text
+        ? JSON.parse(text)
+        : {};
+
+  } catch {
+
+    data = {
+      raw: text
+    };
 
   }
 
+  if (!response.ok) {
+
+    const error =
+      new Error(
+        data.error_message ||
+        data.error ||
+        "Pi user verification failed."
+      );
+
+    error.status =
+      response.status;
+
+    throw error;
+  }
+
+  if (
+    !data ||
+    !data.username
+  ) {
+
+    throw new Error(
+      "Pi did not return a valid username."
+    );
+  }
 
   return data;
+}
+
+
+/*
+ * ============================================================
+ * USERNAME VALIDATION
+ * ============================================================
+ */
+
+function validUsername(username) {
+
+  return (
+    typeof username === "string" &&
+    /^[A-Za-z0-9._-]{1,64}$/.test(
+      username
+    )
+  );
+}
+
+
+/*
+ * ============================================================
+ * WALLET ADDRESS VALIDATION
+ * ============================================================
+ *
+ * We store the wallet address but do NOT
+ * automatically mark ownership as verified.
+ *
+ * A submitted address is:
+ *
+ * pending
+ *
+ * until proper ownership validation
+ * is completed.
+ * ============================================================
+ */
+
+function validWalletAddress(address) {
+
+  if (
+    typeof address !== "string"
+  ) {
+    return false;
+  }
+
+  const value =
+    address.trim();
+
+  /*
+   * Pi wallet addresses are long
+   * Stellar-style public addresses.
+   *
+   * This is only format validation.
+   */
+
+  return /^G[A-Z2-7]{20,60}$/.test(
+    value
+  );
+}
+
+
+/*
+ * ============================================================
+ * TEST USER
+ * ============================================================
+ */
+
+function isTestUser(username) {
+
+  if (!ADT_TEST_USERNAME) {
+    return false;
+  }
+
+  return (
+    String(username).toLowerCase() ===
+    ADT_TEST_USERNAME.toLowerCase()
+  );
 }
 
 
@@ -269,22 +350,13 @@ async function piApiRequest(
 async function initializeDatabase() {
 
   await query(`
-
     CREATE TABLE IF NOT EXISTS users (
 
       id BIGSERIAL PRIMARY KEY,
 
       pi_username TEXT UNIQUE NOT NULL,
 
-      wallet_address TEXT,
-
-      wallet_verified BOOLEAN
-        NOT NULL DEFAULT FALSE,
-
       created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW(),
-
-      updated_at TIMESTAMPTZ
         NOT NULL DEFAULT NOW()
 
     );
@@ -330,33 +402,6 @@ async function initializeDatabase() {
     );
 
 
-    CREATE TABLE IF NOT EXISTS reputation (
-
-      user_id BIGINT PRIMARY KEY
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-
-      score INTEGER
-        NOT NULL DEFAULT 100,
-
-      mining_cycles INTEGER
-        NOT NULL DEFAULT 0,
-
-      completed_purchases INTEGER
-        NOT NULL DEFAULT 0,
-
-      wallet_verified_count INTEGER
-        NOT NULL DEFAULT 0,
-
-      created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW(),
-
-      updated_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW()
-
-    );
-
-
     CREATE TABLE IF NOT EXISTS payments (
 
       id BIGSERIAL PRIMARY KEY,
@@ -394,8 +439,7 @@ async function initializeDatabase() {
 
       product TEXT NOT NULL,
 
-      amount NUMERIC(20,8)
-        NOT NULL,
+      amount NUMERIC(20,8) NOT NULL,
 
       txid TEXT UNIQUE NOT NULL,
 
@@ -405,71 +449,49 @@ async function initializeDatabase() {
     );
 
 
-    CREATE TABLE IF NOT EXISTS marketplace_products (
+    CREATE TABLE IF NOT EXISTS wallets (
 
       id BIGSERIAL PRIMARY KEY,
 
-      product_code TEXT UNIQUE NOT NULL,
+      user_id BIGINT UNIQUE NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
 
-      name TEXT NOT NULL,
+      wallet_address TEXT UNIQUE NOT NULL,
 
-      description TEXT,
+      verification_status TEXT
+        NOT NULL DEFAULT 'pending',
 
-      price_pi NUMERIC(20,8)
-        NOT NULL,
+      submitted_at TIMESTAMPTZ
+        NOT NULL DEFAULT NOW(),
 
-      test_only BOOLEAN
-        NOT NULL DEFAULT TRUE,
-
-      active BOOLEAN
-        NOT NULL DEFAULT TRUE,
-
-      created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW()
+      verified_at TIMESTAMPTZ
 
     );
 
-  `);
 
+    CREATE TABLE IF NOT EXISTS reputation (
 
-  /*
-   * Developer-only Test Pet.
-   *
-   * This product exists in the database but is
-   * intentionally protected by the API.
-   */
+      user_id BIGINT PRIMARY KEY
+        REFERENCES users(id)
+        ON DELETE CASCADE,
 
-  await query(`
+      score INTEGER
+        NOT NULL DEFAULT 100,
 
-    INSERT INTO marketplace_products (
+      mining_cycles INTEGER
+        NOT NULL DEFAULT 0,
 
-      product_code,
-      name,
-      description,
-      price_pi,
-      test_only,
-      active
+      completed_purchases INTEGER
+        NOT NULL DEFAULT 0,
 
-    )
+      wallet_verified BOOLEAN
+        NOT NULL DEFAULT FALSE,
 
-    VALUES (
+      updated_at TIMESTAMPTZ
+        NOT NULL DEFAULT NOW()
 
-      'adt-test-pet',
-
-      'ADT Test Digital Pet',
-
-      'Developer checklist test item.',
-
-      0.1,
-
-      TRUE,
-
-      TRUE
-
-    )
-
-    ON CONFLICT (product_code)
-    DO NOTHING
+    );
 
   `);
 
@@ -486,8 +508,8 @@ app.get("/", (req, res) => {
 
   res.json({
 
-    app:
-      APP_NAME,
+    service:
+      "Alberto Digital Token",
 
     status:
       "online",
@@ -496,13 +518,15 @@ app.get("/", (req, res) => {
       "2.0.0",
 
     network:
-      PI_NETWORK,
+      PI_SANDBOX
+        ? "Pi Testnet / Sandbox"
+        : "Pi Production",
 
     miningRate:
       MINING_RATE,
 
-    miningCycleHours:
-      MINING_HOURS
+    miningCycle:
+      `${MINING_HOURS} hours`
 
   });
 
@@ -522,13 +546,10 @@ app.get(
     try {
 
       if (pool) {
-
         await query(
           "SELECT 1"
         );
-
       }
-
 
       res.json({
 
@@ -540,8 +561,11 @@ app.get(
         piApiKeyConfigured:
           Boolean(PI_API_KEY),
 
-        network:
-          PI_NETWORK,
+        piSandbox:
+          PI_SANDBOX,
+
+        developerTestUserConfigured:
+          Boolean(ADT_TEST_USERNAME),
 
         time:
           new Date().toISOString()
@@ -571,7 +595,7 @@ app.get(
 
 /*
  * ============================================================
- * REGISTER / SYNC USER
+ * REGISTER USER
  * ============================================================
  */
 
@@ -581,13 +605,13 @@ app.post(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.body.piUsername
-        );
+      const {
+        piUsername,
+        accessToken
+      } = req.body;
 
 
-      if (!validUsername(username)) {
+      if (!validUsername(piUsername)) {
 
         return res.status(400).json({
 
@@ -599,71 +623,93 @@ app.post(
       }
 
 
-      const result =
-        await query(`
+      /*
+       * Verify username against Pi
+       * when access token is supplied.
+       */
 
-          INSERT INTO users (
-            pi_username
-          )
+      if (accessToken) {
+
+        const piUser =
+          await verifyPiUser(
+            accessToken
+          );
+
+        if (
+          piUser.username !==
+          piUsername
+        ) {
+
+          return res.status(403).json({
+
+            error:
+              "Pi username does not match the authenticated account."
+
+          });
+
+        }
+
+      }
+
+
+      const result =
+        await query(
+          `
+          INSERT INTO users
+          (pi_username)
 
           VALUES ($1)
 
           ON CONFLICT (pi_username)
 
           DO UPDATE SET
-            updated_at = NOW()
+            pi_username =
+              EXCLUDED.pi_username
 
           RETURNING
             id,
             pi_username,
-            wallet_address,
-            wallet_verified,
             created_at
-
-        `, [username]);
+          `,
+          [piUsername]
+        );
 
 
       const user =
         result.rows[0];
 
 
-      await query(`
-
-        INSERT INTO balances (
-          user_id
-        )
-
-        VALUES ($1)
-
-        ON CONFLICT (user_id)
-        DO NOTHING
-
-      `, [user.id]);
-
-
-      await query(`
-
-        INSERT INTO reputation (
-          user_id
-        )
+      await query(
+        `
+        INSERT INTO balances
+        (user_id)
 
         VALUES ($1)
 
         ON CONFLICT (user_id)
         DO NOTHING
+        `,
+        [user.id]
+      );
 
-      `, [user.id]);
+
+      await query(
+        `
+        INSERT INTO reputation
+        (user_id)
+
+        VALUES ($1)
+
+        ON CONFLICT (user_id)
+        DO NOTHING
+        `,
+        [user.id]
+      );
 
 
       res.status(201).json({
 
-        user,
-
-        developer:
-          isDeveloper(username),
-
-        network:
-          PI_NETWORK
+        user
 
       });
 
@@ -674,10 +720,13 @@ app.post(
         error
       );
 
-      res.status(500).json({
+      res.status(
+        error.status || 500
+      ).json({
 
         error:
-          "Unable to register user."
+          error.message ||
+          "Unable to create user."
 
       });
 
@@ -689,28 +738,22 @@ app.post(
 
 /*
  * ============================================================
- * WALLET VERIFICATION
+ * PROFILE
  * ============================================================
  */
 
-app.post(
-  "/api/wallet/verify",
+app.get(
+  "/api/profile",
   async (req, res) => {
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.body.piUsername
-        );
-
-      const walletAddress =
-        String(
-          req.body.walletAddress || ""
-        ).trim();
+      const {
+        piUsername
+      } = req.query;
 
 
-      if (!validUsername(username)) {
+      if (!validUsername(piUsername)) {
 
         return res.status(400).json({
 
@@ -722,162 +765,38 @@ app.post(
       }
 
 
-      if (
-        !validWalletAddress(
-          walletAddress
-        )
-      ) {
-
-        return res.status(400).json({
-
-          error:
-            "Invalid public wallet address."
-
-        });
-
-      }
-
-
-      const user =
-        await query(`
-
-          SELECT id
-
-          FROM users
-
-          WHERE pi_username = $1
-
-        `, [username]);
-
-
-      if (
-        user.rows.length === 0
-      ) {
-
-        return res.status(404).json({
-
-          error:
-            "User not found."
-
-        });
-
-      }
-
-
-      const userId =
-        user.rows[0].id;
-
-
-      await query(`
-
-        UPDATE users
-
-        SET
-
-          wallet_address = $1,
-
-          wallet_verified = TRUE,
-
-          updated_at = NOW()
-
-        WHERE id = $2
-
-      `, [
-        walletAddress,
-        userId
-      ]);
-
-
-      await query(`
-
-        UPDATE reputation
-
-        SET
-
-          wallet_verified_count =
-            wallet_verified_count + 1,
-
-          score =
-            LEAST(
-              1000,
-              score + 50
-            ),
-
-          updated_at = NOW()
-
-        WHERE user_id = $1
-
-      `, [userId]);
-
-
-      res.json({
-
-        ok: true,
-
-        verified: true,
-
-        message:
-          "Wallet address registered successfully.",
-
-        network:
-          PI_NETWORK
-
-      });
-
-    } catch (error) {
-
-      console.error(
-        "Wallet verification error:",
-        error
-      );
-
-      res.status(500).json({
-
-        error:
-          "Unable to verify wallet."
-
-      });
-
-    }
-
-  }
-);
-
-
-/*
- * ============================================================
- * WALLET STATUS
- * ============================================================
- */
-
-app.get(
-  "/api/wallet/status",
-  async (req, res) => {
-
-    try {
-
-      const username =
-        normalizeUsername(
-          req.query.piUsername
-        );
-
-
       const result =
-        await query(`
-
+        await query(
+          `
           SELECT
 
-            pi_username,
+            u.id,
 
-            wallet_address,
+            u.pi_username,
 
-            wallet_verified
+            b.available_adt,
 
-          FROM users
+            r.score,
 
-          WHERE pi_username = $1
+            r.mining_cycles,
 
-        `, [username]);
+            r.completed_purchases,
+
+            r.wallet_verified
+
+          FROM users u
+
+          LEFT JOIN balances b
+            ON b.user_id = u.id
+
+          LEFT JOIN reputation r
+            ON r.user_id = u.id
+
+          WHERE
+            u.pi_username = $1
+          `,
+          [piUsername]
+        );
 
 
       if (
@@ -903,14 +822,325 @@ app.get(
         username:
           user.pi_username,
 
-        walletAddress:
-          user.wallet_address,
+        balanceADT:
+          Number(
+            user.available_adt || 0
+          ),
 
-        verified:
-          user.wallet_verified,
+        reputation: {
 
-        network:
-          PI_NETWORK
+          score:
+            Number(
+              user.score || 100
+            ),
+
+          miningCycles:
+            Number(
+              user.mining_cycles || 0
+            ),
+
+          completedPurchases:
+            Number(
+              user.completed_purchases || 0
+            ),
+
+          walletVerified:
+            Boolean(
+              user.wallet_verified
+            )
+
+        }
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Profile error:",
+        error
+      );
+
+      res.status(500).json({
+
+        error:
+          "Unable to read profile."
+
+      });
+
+    }
+
+  }
+);
+
+
+/*
+ * ============================================================
+ * WALLET SUBMISSION
+ * ============================================================
+ */
+
+app.post(
+  "/api/wallet",
+  async (req, res) => {
+
+    try {
+
+      const {
+        piUsername,
+        walletAddress,
+        accessToken
+      } = req.body;
+
+
+      if (
+        !validUsername(piUsername)
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Invalid Pi username."
+
+        });
+
+      }
+
+
+      if (
+        !validWalletAddress(
+          walletAddress
+        )
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Invalid wallet address format."
+
+        });
+
+      }
+
+
+      /*
+       * Verify the authenticated Pi account.
+       */
+
+      if (accessToken) {
+
+        const piUser =
+          await verifyPiUser(
+            accessToken
+          );
+
+        if (
+          piUser.username !==
+          piUsername
+        ) {
+
+          return res.status(403).json({
+
+            error:
+              "Pi account mismatch."
+
+          });
+
+        }
+
+      }
+
+
+      const userResult =
+        await query(
+          `
+          SELECT id
+          FROM users
+          WHERE pi_username = $1
+          `,
+          [piUsername]
+        );
+
+
+      if (
+        userResult.rows.length === 0
+      ) {
+
+        return res.status(404).json({
+
+          error:
+            "User not found. Sign in with Pi first."
+
+        });
+
+      }
+
+
+      const userId =
+        userResult.rows[0].id;
+
+
+      /*
+       * Do not automatically claim ownership.
+       */
+
+      const result =
+        await query(
+          `
+          INSERT INTO wallets (
+
+            user_id,
+            wallet_address,
+            verification_status
+
+          )
+
+          VALUES (
+
+            $1,
+            $2,
+            'pending'
+
+          )
+
+          ON CONFLICT (user_id)
+
+          DO UPDATE SET
+
+            wallet_address =
+              EXCLUDED.wallet_address,
+
+            verification_status =
+              'pending',
+
+            submitted_at =
+              NOW(),
+
+            verified_at =
+              NULL
+
+          RETURNING
+
+            wallet_address,
+            verification_status,
+            submitted_at
+          `,
+          [
+            userId,
+            walletAddress.trim()
+          ]
+        );
+
+
+      await query(
+        `
+        UPDATE reputation
+
+        SET
+          wallet_verified = FALSE,
+          updated_at = NOW()
+
+        WHERE user_id = $1
+        `,
+        [userId]
+      );
+
+
+      res.json({
+
+        ok: true,
+
+        message:
+          "Wallet submitted for verification.",
+
+        wallet:
+          result.rows[0]
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Wallet submission error:",
+        error
+      );
+
+      res.status(500).json({
+
+        error:
+          "Unable to submit wallet."
+
+      });
+
+    }
+
+  }
+);
+
+
+/*
+ * ============================================================
+ * WALLET STATUS
+ * ============================================================
+ */
+
+app.get(
+  "/api/wallet",
+  async (req, res) => {
+
+    try {
+
+      const {
+        piUsername
+      } = req.query;
+
+
+      const result =
+        await query(
+          `
+          SELECT
+
+            w.wallet_address,
+
+            w.verification_status,
+
+            w.submitted_at,
+
+            w.verified_at
+
+          FROM wallets w
+
+          JOIN users u
+            ON u.id = w.user_id
+
+          WHERE
+            u.pi_username = $1
+          `,
+          [piUsername]
+        );
+
+
+      if (
+        result.rows.length === 0
+      ) {
+
+        return res.json({
+
+          exists: false,
+
+          verificationStatus:
+            "not_submitted"
+
+        });
+
+      }
+
+
+      res.json({
+
+        exists: true,
+
+        wallet:
+          result.rows[0]
 
       });
 
@@ -936,117 +1166,6 @@ app.get(
 
 /*
  * ============================================================
- * REPUTATION
- * ============================================================
- */
-
-app.get(
-  "/api/reputation",
-  async (req, res) => {
-
-    try {
-
-      const username =
-        normalizeUsername(
-          req.query.piUsername
-        );
-
-
-      const result =
-        await query(`
-
-          SELECT
-
-            u.pi_username,
-
-            u.wallet_verified,
-
-            r.score,
-
-            r.mining_cycles,
-
-            r.completed_purchases,
-
-            r.wallet_verified_count
-
-          FROM users u
-
-          JOIN reputation r
-            ON r.user_id = u.id
-
-          WHERE
-            u.pi_username = $1
-
-        `, [username]);
-
-
-      if (
-        result.rows.length === 0
-      ) {
-
-        return res.status(404).json({
-
-          error:
-            "User not found."
-
-        });
-
-      }
-
-
-      const data =
-        result.rows[0];
-
-
-      res.json({
-
-        username:
-          data.pi_username,
-
-        score:
-          data.score,
-
-        level:
-          reputationLevel(
-            Number(data.score)
-          ),
-
-        walletVerified:
-          data.wallet_verified,
-
-        miningCycles:
-          data.mining_cycles,
-
-        purchases:
-          data.completed_purchases,
-
-        walletVerifications:
-          data.wallet_verified_count
-
-      });
-
-    } catch (error) {
-
-      console.error(
-        "Reputation error:",
-        error
-      );
-
-      res.status(500).json({
-
-        error:
-          "Unable to read reputation."
-
-      });
-
-    }
-
-  }
-);
-
-
-/*
- * ============================================================
  * START MINING
  * ============================================================
  */
@@ -1057,13 +1176,15 @@ app.post(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.body.piUsername
-        );
+      const {
+        piUsername,
+        accessToken
+      } = req.body;
 
 
-      if (!validUsername(username)) {
+      if (
+        !validUsername(piUsername)
+      ) {
 
         return res.status(400).json({
 
@@ -1075,16 +1196,39 @@ app.post(
       }
 
 
+      if (accessToken) {
+
+        const piUser =
+          await verifyPiUser(
+            accessToken
+          );
+
+        if (
+          piUser.username !==
+          piUsername
+        ) {
+
+          return res.status(403).json({
+
+            error:
+              "Pi account mismatch."
+
+          });
+
+        }
+
+      }
+
+
       const user =
-        await query(`
-
+        await query(
+          `
           SELECT id
-
           FROM users
-
           WHERE pi_username = $1
-
-        `, [username]);
+          `,
+          [piUsername]
+        );
 
 
       if (
@@ -1094,7 +1238,7 @@ app.post(
         return res.status(404).json({
 
           error:
-            "User not found. Sign in again."
+            "User not found. Please sign in again."
 
         });
 
@@ -1106,13 +1250,11 @@ app.post(
 
 
       const active =
-        await query(`
-
+        await query(
+          `
           SELECT
-
             id,
-            started_at,
-            rate_adt_per_hour
+            started_at
 
           FROM mining_sessions
 
@@ -1121,8 +1263,9 @@ app.post(
           AND status = 'active'
 
           LIMIT 1
-
-        `, [userId]);
+          `,
+          [userId]
+        );
 
 
       if (
@@ -1143,14 +1286,12 @@ app.post(
 
 
       const session =
-        await query(`
-
+        await query(
+          `
           INSERT INTO mining_sessions (
 
             user_id,
-
             rate_adt_per_hour,
-
             status
 
           )
@@ -1158,9 +1299,7 @@ app.post(
           VALUES (
 
             $1,
-
             $2,
-
             'active'
 
           )
@@ -1168,26 +1307,21 @@ app.post(
           RETURNING
 
             id,
-
             started_at,
-
             rate_adt_per_hour,
-
             status
-
-        `, [
-          userId,
-          MINING_RATE
-        ]);
+          `,
+          [
+            userId,
+            MINING_RATE
+          ]
+        );
 
 
       res.status(201).json({
 
         message:
           "ADT mining started.",
-
-        network:
-          PI_NETWORK,
 
         session:
           session.rows[0],
@@ -1199,7 +1333,7 @@ app.post(
           MINING_HOURS,
 
         maximumEarnedADT:
-          DAILY_REWARD
+          DAILY_LIMIT
 
       });
 
@@ -1210,9 +1344,12 @@ app.post(
         error
       );
 
-      res.status(500).json({
+      res.status(
+        error.status || 500
+      ).json({
 
         error:
+          error.message ||
           "Unable to start mining."
 
       });
@@ -1235,15 +1372,14 @@ app.get(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.query.piUsername
-        );
+      const {
+        piUsername
+      } = req.query;
 
 
       const result =
-        await query(`
-
+        await query(
+          `
           SELECT
 
             ms.id,
@@ -1258,16 +1394,15 @@ app.get(
             ON u.id = ms.user_id
 
           WHERE
-
             u.pi_username = $1
 
           AND
-
             ms.status = 'active'
 
           LIMIT 1
-
-        `, [username]);
+          `,
+          [piUsername]
+        );
 
 
       if (
@@ -1360,7 +1495,7 @@ app.get(
           earned,
 
         maximumEarnedADT:
-          DAILY_REWARD,
+          DAILY_LIMIT,
 
         remainingSeconds:
           Math.ceil(
@@ -1391,7 +1526,7 @@ app.get(
 
 /*
  * ============================================================
- * CLAIM MINING
+ * CLAIM ADT
  * ============================================================
  */
 
@@ -1401,10 +1536,10 @@ app.post(
 
     if (!pool) {
 
-      return res.status(500).json({
+      return res.status(503).json({
 
         error:
-          "DATABASE_URL is not configured."
+          "Database is not configured."
 
       });
 
@@ -1417,10 +1552,9 @@ app.post(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.body.piUsername
-        );
+      const {
+        piUsername
+      } = req.body;
 
 
       await client.query(
@@ -1429,8 +1563,8 @@ app.post(
 
 
       const result =
-        await client.query(`
-
+        await client.query(
+          `
           SELECT
 
             ms.id,
@@ -1447,16 +1581,15 @@ app.post(
             ON u.id = ms.user_id
 
           WHERE
-
             u.pi_username = $1
 
           AND
-
             ms.status = 'active'
 
           FOR UPDATE
-
-        `, [username]);
+          `,
+          [piUsername]
+        );
 
 
       if (
@@ -1526,11 +1659,11 @@ app.post(
 
 
       const earned =
-        DAILY_REWARD;
+        DAILY_LIMIT;
 
 
-      await client.query(`
-
+      await client.query(
+        `
         UPDATE mining_sessions
 
         SET
@@ -1542,19 +1675,19 @@ app.post(
           earned_adt = $1
 
         WHERE id = $2
+        `,
+        [
+          earned,
+          session.id
+        ]
+      );
 
-      `, [
-        earned,
-        session.id
-      ]);
 
-
-      await client.query(`
-
+      await client.query(
+        `
         INSERT INTO balances (
 
           user_id,
-
           available_adt
 
         )
@@ -1570,19 +1703,34 @@ app.post(
             EXCLUDED.available_adt,
 
           updated_at = NOW()
+        `,
+        [
+          session.user_id,
+          earned
+        ]
+      );
 
-      `, [
-        session.user_id,
-        earned
-      ]);
+
+      const balance =
+        await client.query(
+          `
+          SELECT available_adt
+
+          FROM balances
+
+          WHERE user_id = $1
+          `,
+          [session.user_id]
+        );
 
 
       /*
-       * Increase our own ADT reputation.
+       * Increase ADT reputation after
+       * a completed mining cycle.
        */
 
-      await client.query(`
-
+      await client.query(
+        `
         UPDATE reputation
 
         SET
@@ -1593,30 +1741,15 @@ app.post(
           score =
             LEAST(
               1000,
-              score + 10
+              score + 1
             ),
 
           updated_at = NOW()
 
         WHERE user_id = $1
-
-      `, [
-        session.user_id
-      ]);
-
-
-      const balance =
-        await client.query(`
-
-          SELECT available_adt
-
-          FROM balances
-
-          WHERE user_id = $1
-
-        `, [
-          session.user_id
-        ]);
+        `,
+        [session.user_id]
+      );
 
 
       await client.query(
@@ -1625,8 +1758,6 @@ app.post(
 
 
       res.json({
-
-        ok: true,
 
         message:
           "24-hour mining completed.",
@@ -1689,15 +1820,14 @@ app.get(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.query.piUsername
-        );
+      const {
+        piUsername
+      } = req.query;
 
 
       const result =
-        await query(`
-
+        await query(
+          `
           SELECT
 
             u.pi_username,
@@ -1711,8 +1841,9 @@ app.get(
 
           WHERE
             u.pi_username = $1
-
-        `, [username]);
+          `,
+          [piUsername]
+        );
 
 
       if (
@@ -1775,27 +1906,21 @@ app.get(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.query.piUsername
-        );
+      const {
+        piUsername
+      } = req.query;
 
 
       const result =
-        await query(`
-
+        await query(
+          `
           SELECT
 
             ms.id,
-
             ms.started_at,
-
             ms.stopped_at,
-
             ms.status,
-
             ms.rate_adt_per_hour,
-
             ms.earned_adt
 
           FROM mining_sessions ms
@@ -1810,8 +1935,9 @@ app.get(
             ms.started_at DESC
 
           LIMIT 50
-
-        `, [username]);
+          `,
+          [piUsername]
+        );
 
 
       res.json({
@@ -1843,10 +1969,156 @@ app.get(
 
 /*
  * ============================================================
+ * ADT REPUTATION
+ * ============================================================
+ */
+
+app.get(
+  "/api/reputation",
+  async (req, res) => {
+
+    try {
+
+      const {
+        piUsername
+      } = req.query;
+
+
+      const result =
+        await query(
+          `
+          SELECT
+
+            r.score,
+
+            r.mining_cycles,
+
+            r.completed_purchases,
+
+            r.wallet_verified
+
+          FROM reputation r
+
+          JOIN users u
+            ON u.id = r.user_id
+
+          WHERE
+            u.pi_username = $1
+          `,
+          [piUsername]
+        );
+
+
+      if (
+        result.rows.length === 0
+      ) {
+
+        return res.status(404).json({
+
+          error:
+            "Reputation profile not found."
+
+        });
+
+      }
+
+
+      const reputation =
+        result.rows[0];
+
+
+      res.json({
+
+        username:
+          piUsername,
+
+        reputation: {
+
+          score:
+            Number(
+              reputation.score
+            ),
+
+          level:
+            getReputationLevel(
+              Number(
+                reputation.score
+              )
+            ),
+
+          miningCycles:
+            Number(
+              reputation.mining_cycles
+            ),
+
+          completedPurchases:
+            Number(
+              reputation.completed_purchases
+            ),
+
+          walletVerified:
+            Boolean(
+              reputation.wallet_verified
+            )
+
+        }
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Reputation error:",
+        error
+      );
+
+      res.status(500).json({
+
+        error:
+          "Unable to read reputation."
+
+      });
+
+    }
+
+  }
+);
+
+
+/*
+ * ============================================================
+ * REPUTATION LEVEL
+ * ============================================================
+ */
+
+function getReputationLevel(score) {
+
+  if (score >= 900)
+    return "Legend";
+
+  if (score >= 750)
+    return "Elite";
+
+  if (score >= 500)
+    return "Trusted";
+
+  if (score >= 250)
+    return "Established";
+
+  if (score >= 100)
+    return "Miner";
+
+  return "Newcomer";
+}
+
+
+/*
+ * ============================================================
  * MARKETPLACE
  * ============================================================
  *
- * Normal miners will NOT receive developer-only products.
+ * The developer test pet is intentionally
+ * hidden from normal miners.
  * ============================================================
  */
 
@@ -1856,69 +2128,47 @@ app.get(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.query.piUsername
-        );
+      const {
+        piUsername
+      } = req.query;
 
 
-      let result;
+      const products = [];
 
 
-      if (isDeveloper(username)) {
+      /*
+       * Developer-only test product.
+       */
 
-        /*
-         * Developer can see test products.
-         */
+      if (
+        piUsername &&
+        isTestUser(piUsername)
+      ) {
 
-        result =
-          await query(`
+        products.push({
 
-            SELECT
+          id:
+            "adt-digital-pet-test",
 
-              product_code,
-              name,
-              description,
-              price_pi,
-              test_only,
-              active
+          name:
+            "ADT Digital Pet",
 
-            FROM marketplace_products
+          description:
+            "Developer checklist test item.",
 
-            WHERE active = TRUE
+          price:
+            0.1,
 
-            ORDER BY id ASC
+          currency:
+            "Test-Pi",
 
-          `);
+          testOnly:
+            true,
 
-      } else {
+          available:
+            true
 
-        /*
-         * Normal miners cannot see
-         * developer test products.
-         */
-
-        result =
-          await query(`
-
-            SELECT
-
-              product_code,
-              name,
-              description,
-              price_pi,
-              test_only,
-              active
-
-            FROM marketplace_products
-
-            WHERE active = TRUE
-
-            AND test_only = FALSE
-
-            ORDER BY id ASC
-
-          `);
+        });
 
       }
 
@@ -1926,13 +2176,11 @@ app.get(
       res.json({
 
         network:
-          PI_NETWORK,
+          PI_SANDBOX
+            ? "testnet"
+            : "production",
 
-        developer:
-          isDeveloper(username),
-
-        products:
-          result.rows
+        products
 
       });
 
@@ -1968,18 +2216,38 @@ app.post(
 
     try {
 
-      const paymentId =
-        String(
-          req.body.paymentId || ""
-        ).trim();
+      const {
+        paymentId,
+        piUsername
+      } = req.body;
 
 
-      if (!paymentId) {
+      if (
+        typeof paymentId !== "string"
+      ) {
 
         return res.status(400).json({
 
           error:
             "Invalid payment ID."
+
+        });
+
+      }
+
+
+      /*
+       * Developer-only test purchase.
+       */
+
+      if (
+        !isTestUser(piUsername)
+      ) {
+
+        return res.status(403).json({
+
+          error:
+            "Marketplace test payment is restricted to the developer test account."
 
         });
 
@@ -2000,12 +2268,13 @@ app.post(
         );
 
 
-      await query(`
-
+      await query(
+        `
         INSERT INTO payments (
 
           payment_id,
-
+          pi_username,
+          product,
           status
 
         )
@@ -2013,7 +2282,8 @@ app.post(
         VALUES (
 
           $1,
-
+          $2,
+          'adt-digital-pet-test',
           'approved'
 
         )
@@ -2022,11 +2292,17 @@ app.post(
 
         DO UPDATE SET
 
-          status = 'approved'
+          pi_username =
+            EXCLUDED.pi_username,
 
-      `, [
-        paymentId
-      ]);
+          status =
+            'approved'
+        `,
+        [
+          paymentId,
+          piUsername
+        ]
+      );
 
 
       res.json({
@@ -2053,7 +2329,6 @@ app.post(
 
         error:
           error.message ||
-
           "Payment approval failed."
 
       });
@@ -2076,10 +2351,10 @@ app.post(
 
     if (!pool) {
 
-      return res.status(500).json({
+      return res.status(503).json({
 
         error:
-          "DATABASE_URL is not configured."
+          "Database is not configured."
 
       });
 
@@ -2092,32 +2367,24 @@ app.post(
 
     try {
 
-      const paymentId =
-        String(
-          req.body.paymentId || ""
-        ).trim();
-
-      const txid =
-        String(
-          req.body.txid || ""
-        ).trim();
-
-      const username =
-        normalizeUsername(
-          req.body.piUsername
-        );
-
-      const product =
-        String(
-          req.body.product || ""
-        ).trim();
+      const {
+        paymentId,
+        txid,
+        piUsername,
+        product
+      } = req.body;
 
 
       if (
-        !paymentId ||
-        !txid ||
-        !validUsername(username) ||
-        !product
+
+        typeof paymentId !== "string" ||
+
+        typeof txid !== "string" ||
+
+        typeof piUsername !== "string" ||
+
+        typeof product !== "string"
+
       ) {
 
         return res.status(400).json({
@@ -2131,21 +2398,19 @@ app.post(
 
 
       /*
-       * Test product protection.
-       *
-       * Only the developer account may
-       * complete the developer-only test pet.
+       * Developer-only test marketplace.
        */
 
       if (
-        product === "adt-test-pet" &&
-        !isDeveloper(username)
+        product ===
+        "adt-digital-pet-test" &&
+        !isTestUser(piUsername)
       ) {
 
         return res.status(403).json({
 
           error:
-            "This test marketplace product is restricted."
+            "This Test-Pi product is restricted to the developer test account."
 
         });
 
@@ -2153,7 +2418,7 @@ app.post(
 
 
       /*
-       * Ask Pi to complete the payment.
+       * Complete payment with Pi.
        */
 
       const payment =
@@ -2172,18 +2437,31 @@ app.post(
         );
 
 
-      const userResult =
-        await client.query(`
+      /*
+       * Read verified amount from Pi.
+       */
 
+      const amount =
+        Number(
+          payment.amount || 0
+        );
+
+
+      /*
+       * Locate user.
+       */
+
+      const userResult =
+        await client.query(
+          `
           SELECT id
 
           FROM users
 
           WHERE pi_username = $1
-
-        `, [
-          username
-        ]);
+          `,
+          [piUsername]
+        );
 
 
       if (
@@ -2204,16 +2482,6 @@ app.post(
         userResult.rows[0].id;
 
 
-      /*
-       * Use amount returned by Pi.
-       */
-
-      const amount =
-        Number(
-          payment.amount || 0
-        );
-
-
       await client.query(
         "BEGIN"
       );
@@ -2223,22 +2491,16 @@ app.post(
        * Save payment.
        */
 
-      await client.query(`
-
+      await client.query(
+        `
         INSERT INTO payments (
 
           payment_id,
-
           pi_username,
-
           product,
-
           amount,
-
           txid,
-
           status,
-
           completed_at
 
         )
@@ -2246,17 +2508,11 @@ app.post(
         VALUES (
 
           $1,
-
           $2,
-
           $3,
-
           $4,
-
           $5,
-
           'completed',
-
           NOW()
 
         )
@@ -2282,39 +2538,32 @@ app.post(
 
           completed_at =
             NOW()
+        `,
+        [
 
-      `, [
+          paymentId,
+          piUsername,
+          product,
+          amount,
+          txid
 
-        paymentId,
-
-        username,
-
-        product,
-
-        amount,
-
-        txid
-
-      ]);
+        ]
+      );
 
 
       /*
-       * Deliver product exactly once.
+       * Deliver product only once.
        */
 
       const purchase =
-        await client.query(`
-
+        await client.query(
+          `
           INSERT INTO purchases (
 
             user_id,
-
             payment_id,
-
             product,
-
             amount,
-
             txid
 
           )
@@ -2322,13 +2571,9 @@ app.post(
           VALUES (
 
             $1,
-
             $2,
-
             $3,
-
             $4,
-
             $5
 
           )
@@ -2338,33 +2583,30 @@ app.post(
           DO NOTHING
 
           RETURNING id
+          `,
+          [
 
-        `, [
+            userId,
+            paymentId,
+            product,
+            amount,
+            txid
 
-          userId,
-
-          paymentId,
-
-          product,
-
-          amount,
-
-          txid
-
-      ]);
+          ]
+        );
 
 
       /*
-       * Increase reputation only for
-       * a newly recorded purchase.
+       * Increase reputation only
+       * for a newly recorded purchase.
        */
 
       if (
         purchase.rows.length > 0
       ) {
 
-        await client.query(`
-
+        await client.query(
+          `
           UPDATE reputation
 
           SET
@@ -2375,16 +2617,15 @@ app.post(
             score =
               LEAST(
                 1000,
-                score + 25
+                score + 5
               ),
 
             updated_at = NOW()
 
           WHERE user_id = $1
-
-        `, [
-          userId
-        ]);
+          `,
+          [userId]
+        );
 
       }
 
@@ -2398,9 +2639,6 @@ app.post(
 
         ok: true,
 
-        network:
-          PI_NETWORK,
-
         message:
           "Payment completed and purchase recorded.",
 
@@ -2410,7 +2648,10 @@ app.post(
 
         product,
 
-        amount
+        amount,
+
+        testnet:
+          PI_SANDBOX
 
       });
 
@@ -2435,7 +2676,6 @@ app.post(
 
         error:
           error.message ||
-
           "Payment completion failed."
 
       });
@@ -2462,25 +2702,20 @@ app.get(
 
     try {
 
-      const username =
-        normalizeUsername(
-          req.query.piUsername
-        );
+      const {
+        piUsername
+      } = req.query;
 
 
       const result =
-        await query(`
-
+        await query(
+          `
           SELECT
 
             p.id,
-
             p.product,
-
             p.amount,
-
             p.txid,
-
             p.purchased_at
 
           FROM purchases p
@@ -2493,10 +2728,9 @@ app.get(
 
           ORDER BY
             p.purchased_at DESC
-
-        `, [
-          username
-        ]);
+          `,
+          [piUsername]
+        );
 
 
       res.json({
@@ -2541,12 +2775,12 @@ async function startServer() {
       await initializeDatabase();
 
       console.log(
-        "ADT database initialized."
+        "Database initialized."
       );
 
     } else {
 
-      console.warn(
+      console.log(
         "DATABASE_URL is not configured."
       );
 
@@ -2562,13 +2796,21 @@ async function startServer() {
     }
 
 
-    if (!DEV_PI_USERNAME) {
+    if (!ADT_TEST_USERNAME) {
 
       console.warn(
-        "WARNING: DEV_PI_USERNAME is not configured."
+        "WARNING: ADT_TEST_USERNAME is not configured."
       );
 
     }
+
+
+    console.log(
+      "Pi network:",
+      PI_SANDBOX
+        ? "TESTNET / SANDBOX"
+        : "PRODUCTION"
+    );
 
 
     app.listen(
@@ -2577,11 +2819,7 @@ async function startServer() {
       () => {
 
         console.log(
-          `${APP_NAME} backend running on port ${PORT}`
-        );
-
-        console.log(
-          `Network: ${PI_NETWORK}`
+          `ADT backend running on port ${PORT}`
         );
 
       }
@@ -2590,7 +2828,7 @@ async function startServer() {
   } catch (error) {
 
     console.error(
-      "Server startup failed:",
+      "Startup failed:",
       error
     );
 
