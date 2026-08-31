@@ -1,34 +1,942 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ADT Mining — Alberto Digital Token</title><script src="https://sdk.minepi.com/pi-sdk.js"></script><style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f3f9;color:#211b35}header{background:linear-gradient(135deg,#4b1fa8,#673ab7,#7b35c9);color:#fff;padding:24px 18px;box-shadow:0 8px 30px #4c239633}.header-inner,main{max-width:700px;margin:auto}.logo-row{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;border-radius:15px;background:#ffffff22;display:grid;place-items:center;font-size:25px}h1{margin:0;font-size:27px}header p{margin:4px 0 0;opacity:.82}.network{margin-top:20px;display:flex;justify-content:space-between;background:#ffffff1a;padding:11px;border-radius:13px;font-size:13px}.online{display:flex;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:#55e58b;box-shadow:0 0 10px #55e58b}main{padding:18px}.card{background:#fffffff5;border:1px solid #46287812;border-radius:22px;padding:20px;margin-bottom:17px;box-shadow:0 8px 28px #30205014}.card-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.card-title h2{margin:0;font-size:19px}.card-title span{font-size:12px;color:#7d7290}.account{display:flex;gap:14px;align-items:center}.avatar,.pet-icon{background:#eee8fa;display:grid;place-items:center}.avatar{width:52px;height:52px;border-radius:17px;font-size:24px}.account-info{flex:1}.account-name{font-weight:bold;font-size:17px}.account-status{margin-top:4px;color:#7d7488;font-size:13px}button{width:100%;border:0;border-radius:14px;padding:15px;margin-top:12px;font-size:15px;font-weight:bold;cursor:pointer}.primary{background:linear-gradient(135deg,#673ab7,#7c3dcc);color:#fff}.secondary{background:#eeeaf5;color:#625975}button:disabled{opacity:.42;cursor:not-allowed}.wallet-main{padding:18px;border-radius:17px;background:linear-gradient(135deg,#f5f0ff,#eee8fb)}.wallet-label,.stat-label,.wallet-stat small{color:#81798d;font-size:13px}.balance{font-size:31px;font-weight:800;margin:7px 0}.pending{color:#81798b;font-size:13px}.wallet-grid,.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.wallet-stat,.stat{background:#faf9fc;border:1px solid #eeeaf3;padding:13px;border-radius:14px}.mining-machine{position:relative;width:290px;height:290px;margin:20px auto 14px;display:grid;place-items:center}.outer-ring,.inner-ring{position:absolute;border-radius:50%}.outer-ring{width:276px;height:276px;border:8px solid #673ab733;border-top-color:#673ab7;border-right-color:#914ee0;animation:spin 8s linear infinite}.inner-ring{width:226px;height:226px;border:4px solid #9c27b033;border-top-color:#c46cff;border-right-color:#8e39d2;animation:spin 5s linear reverse infinite}.fan{position:absolute;width:136px;height:136px;animation:spin 1.8s linear infinite}.blade{position:absolute;width:30px;height:68px;left:53px;top:0;border-radius:18px;background:linear-gradient(#8b55d6,#673ab7);transform-origin:15px 68px}.b2{transform:rotate(90deg)}.b3{transform:rotate(180deg)}.b4{transform:rotate(270deg)}.core{position:absolute;width:102px;height:102px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:23px;background:radial-gradient(circle at 35% 28%,#a978e5,#673ab7 70%,#4b258e);box-shadow:0 0 35px #673ab7aa;animation:pulse 1.8s ease-in-out infinite}.mining-off .outer-ring,.mining-off .inner-ring,.mining-off .fan,.mining-off .core{animation-play-state:paused}.mining-rate{text-align:center}.rate-number{font-size:27px;font-weight:800;color:#673ab7}.rate-label{color:#7d7488;font-size:13px}.mining-status{margin-top:17px;padding:14px;border-radius:14px;background:#f2eef9;display:flex;gap:10px;align-items:center}.status-text{flex:1}.status-title{font-weight:bold;font-size:14px}.status-sub{margin-top:3px;color:#81798c;font-size:12px}.timer-box{margin-top:15px;padding:17px;border-radius:17px;background:#211832;color:#fff;text-align:center;display:none}.timer{font-size:34px;font-weight:800;margin-top:5px}.progress-wrap{margin-top:13px;height:9px;background:#ffffff1f;border-radius:20px;overflow:hidden}.progress{height:100%;width:0;background:linear-gradient(90deg,#9d5bea,#c58bff)}.activity{list-style:none;padding:0}.activity li{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #eeeaf3;font-size:13px}.activity-icon{width:30px;height:30px;border-radius:10px;background:#eee7fa;display:grid;place-items:center}.activity-text{flex:1}.activity-time{color:#91889c;font-size:11px;margin-top:3px}.referral-box{background:#f6f2fb;border-radius:14px;padding:15px}.referral-name{font-size:18px;font-weight:bold;margin-top:6px}.chat{height:180px;overflow-y:auto;background:#faf9fc;border:1px solid #eeeaf3;padding:12px;border-radius:14px}.chat p{font-size:13px}.chat-user{font-weight:bold;color:#673ab7}input{width:100%;padding:14px;margin-top:10px;border:1px solid #ddd7e6;border-radius:12px;font-size:14px}.pet{text-align:center}.pet-icon{width:100px;height:100px;margin:5px auto 12px;border-radius:28px;font-size:58px}.pet-name{font-size:20px;font-weight:bold}.price{margin:12px 0;font-size:20px;font-weight:800;color:#673ab7}.supply{display:grid;gap:10px}.supply-row{display:flex;justify-content:space-between;padding:13px;border-radius:13px;background:#faf9fc}.supply-row span{color:#777080;font-size:13px}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{transform:scale(1.07)}}@media(max-width:420px){main{padding:13px}.card{padding:17px}.mining-machine{transform:scale(.88);margin:-5px auto -10px}.timer{font-size:29px}}
-</style></head><body>
-<header><div class="header-inner"><div class="logo-row"><div class="logo">⛏️</div><div><h1>ADT Mining</h1><p>Alberto Digital Token</p></div></div><div class="network"><span>Mining Network — TESTNET</span><span class="online"><span class="dot"></span>ONLINE</span></div></div></header>
-<main>
-<section class="card"><div class="card-title"><h2>Pi Account</h2><span>SECURE LOGIN</span></div><div class="account"><div class="avatar">👤</div><div class="account-info"><div id="userName" class="account-name">Not connected</div><div id="userStatus" class="account-status">Sign in with Pi to continue</div></div></div><button id="piLogin" class="primary">Sign in with Pi</button></section>
-<section class="card"><div class="card-title"><h2>💳 ADT Wallet</h2><span>YOUR BALANCE</span></div><div class="wallet-main"><div class="wallet-label">Available Balance</div><div id="available" class="balance">0.00000000 ADT</div><p class="pending">Pending: <strong>0.00000000</strong> ADT</p></div><div class="wallet-grid"><div class="wallet-stat"><small>Mining Rate</small><strong>0.25 ADT / hour</strong></div><div class="wallet-stat"><small>Mining Cycle</small><strong>24 Hours</strong></div></div><button class="secondary" disabled>Send ADT — Coming Soon</button><button class="secondary" disabled>Swap ADT / Pi — Coming Soon</button><button class="secondary" disabled>Withdraw — Coming Soon</button></section>
-<section class="card"><div class="card-title"><h2>⛏️ ADT Mining</h2><span id="sessionLabel">READY</span></div><div id="miningMachine" class="mining-machine mining-off"><div class="outer-ring"></div><div class="inner-ring"></div><div class="fan"><div class="blade b1"></div><div class="blade b2"></div><div class="blade b3"></div><div class="blade b4"></div></div><div class="core">ADT</div></div><div class="mining-rate"><div class="rate-number">+0.25</div><div class="rate-label">ADT per hour</div></div><div class="mining-status"><div>⚡</div><div class="status-text"><div id="statusTitle" class="status-title">Mining is ready</div><div id="statusSub" class="status-sub">Sign in with Pi to start your 24H session.</div></div></div><div id="timerBox" class="timer-box"><div>MINING SESSION REMAINING</div><div id="timer" class="timer">24:00:00</div><div class="progress-wrap"><div id="progress" class="progress"></div></div></div><div class="stats"><div class="stat"><div class="stat-label">Session Earned</div><div id="sessionEarned">0.00000000 ADT</div></div><div class="stat"><div class="stat-label">Session Status</div><div id="sessionStatus">Idle</div></div></div><button id="startMining" class="primary" disabled>⛏️ Start 24H Mining</button><button id="claim" class="primary" disabled>💰 Claim ADT</button><button id="mineAgain" class="secondary" disabled>🔄 Mining Again</button></section>
-<section class="card"><div class="card-title"><h2>📊 Mining Activity</h2><span>RECENT</span></div><ul id="activity" class="activity"><li><div class="activity-icon">⛏️</div><div class="activity-text"><strong>ADT Mining System</strong><div class="activity-time">Waiting for first mining session</div></div></li></ul></section>
-<section class="card"><div class="card-title"><h2>👥 Referral</h2><span>ADT NETWORK</span></div><div class="referral-box"><div class="wallet-label">Your Pi username</div><div id="referral" class="referral-name">—</div></div></section>
-<section class="card"><div class="card-title"><h2>🖼 NFT Hub</h2><span>ADT COLLECTION</span></div><div class="wallet-grid"><div class="wallet-stat"><small>Total NFTs</small><strong>0</strong></div><div class="wallet-stat"><small>Owned Pets</small><strong>0</strong></div></div><div class="pet"><div class="pet-icon">🐶</div><div class="pet-name">ADT Dog</div><p>Common NFT Pet</p><button class="secondary" disabled>NFT Not Minted</button></div></section>
-<section class="card"><div class="card-title"><h2>⭐ ADT Reput Score</h2><span>TRUST LEVEL</span></div><div class="wallet-main"><div class="wallet-label">Reputation Score</div><div id="reputScore" class="balance">0 RP</div><div>Rank: <strong id="rankLevel">New Miner</strong></div></div></section>
-<section class="card"><div class="card-title"><h2>💬 Miner Chat</h2><span>COMMUNITY</span></div><div id="chat" class="chat"><p>Miner chat will appear here.</p></div><input id="message" placeholder="Message miners..." maxlength="300" disabled><button id="send" class="primary" disabled>Send Message</button></section>
-<section class="card"><div class="card-title"><h2>🐾 Digital Pet</h2><span>ADT ECOSYSTEM</span></div><div class="pet"><div class="pet-icon">🐶</div><div class="pet-name">ADT Digital Pet</div><p>Your first digital pet in the Alberto Digital Token ecosystem.</p><div class="price">0.1 Test-Pi</div><button id="buyPet" class="primary" disabled>🛒 Buy with Test-Pi — 0.1</button><div id="paymentStatus" class="mining-status"><div>💳</div><div class="status-text"><div class="status-title">Payment Ready</div><div class="status-sub">Sign in with Pi to purchase your pet.</div></div></div></div></section>
-<section class="card"><div class="card-title"><h2>🪙 ADT Supply</h2><span>TOKENOMICS</span></div><div class="supply"><div class="supply-row"><span>Maximum Supply</span><strong>30,000,000 ADT</strong></div><div class="supply-row"><span>Mining Allocation</span><strong>15,000,000 ADT</strong></div><div class="supply-row"><span>Mining Cycle</span><strong>24 Hours</strong></div></div></section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TT Mining | Trade Token</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f5ff;
+      color: #202044;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #35108f, #7027d9);
+      color: white;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 5px 20px #32108033;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 2px solid #ffd83d;
+      color: #ffd83d;
+      font-weight: bold;
+      font-size: 21px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .brand small {
+      opacity: .85;
+    }
+
+    .ready {
+      border: 1px solid #ffffff55;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-weight: bold;
+    }
+
+    .ready span {
+      color: #30e676;
+    }
+
+    .container {
+      max-width: 1050px;
+      margin: auto;
+      padding: 22px 16px 50px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 8px 30px #35108f18;
+    }
+
+    .signin {
+      color: white;
+      background: linear-gradient(135deg, #35108f, #5413b8, #21085e);
+      overflow: hidden;
+    }
+
+    .signin h2 {
+      margin-top: 0;
+      font-size: 27px;
+    }
+
+    .signin p {
+      line-height: 1.5;
+      opacity: .9;
+    }
+
+    .benefits {
+      line-height: 2;
+      margin: 15px 0;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    button:active {
+      transform: scale(.98);
+    }
+
+    .pi-btn,
+    .mine-btn {
+      color: white;
+      background: linear-gradient(135deg, #7027d9, #4c11b5);
+    }
+
+    .claim-btn {
+      margin-top: 10px;
+      background: #e5d8fa;
+      color: #8b73ae;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* CORE MACHINE */
+
+    .machine-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .active {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      background: #20c968;
+      color: white;
+      border-radius: 20px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .machine {
+      height: 210px;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+
+    .machine::before {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: #7a28dc33;
+      filter: blur(15px);
+      animation: glow 2s infinite alternate;
+    }
+
+    .core {
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      background: linear-gradient(145deg, #302653, #171329);
+      border: 3px solid #7d39db;
+      box-shadow:
+        0 0 20px #7928d9,
+        inset 0 0 20px #7c2be755;
+      display: grid;
+      place-items: center;
+      position: relative;
+      animation: float 2.5s ease-in-out infinite;
+    }
+
+    .core-ring {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      border: 8px solid #9b4cff;
+      box-shadow: 0 0 20px #a04dff;
+      animation: spin 3s linear infinite;
+    }
+
+    .core-label {
+      position: absolute;
+      bottom: 10px;
+      font-size: 10px;
+      color: #ddd;
+      font-weight: bold;
+    }
+
+    .machine-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+
+    .machine-stats strong {
+      display: block;
+      color: #5420a8;
+      font-size: 18px;
+      margin-top: 5px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes float {
+      0%,100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes glow {
+      from {
+        transform: scale(.85);
+        opacity: .45;
+      }
+
+      to {
+        transform: scale(1.15);
+        opacity: .9;
+      }
+    }
+
+    .welcome {
+      margin-top: 18px;
+    }
+
+    .welcome-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      background: #faf9ff;
+      border: 1px solid #eee8fa;
+      padding: 18px;
+      border-radius: 17px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      color: #5520ae;
+      margin-top: 8px;
+    }
+
+    .alert {
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 15px;
+      background: #fff4f3;
+      border: 1px solid #ffc9c5;
+      color: #a92820;
+      font-weight: bold;
+    }
+
+    .progress {
+      height: 12px;
+      background: #e9e1f7;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #6920d2, #a64cff);
+      transition: width .5s;
+    }
+
+    .status {
+      text-align: center;
+      margin: 10px 0;
+      color: #6f6680;
+    }
+
+    .machine-active .core {
+      animation: float 1s ease-in-out infinite, machinePulse 1s infinite alternate;
+    }
+
+    @keyframes machinePulse {
+      from {
+        box-shadow: 0 0 15px #7928d9;
+      }
+      to {
+        box-shadow: 0 0 45px #a04dff;
+      }
+    }
+
+    .bottom-nav {
+      margin-top: 20px;
+      background: white;
+      border-radius: 20px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      box-shadow: 0 5px 25px #35108f12;
+      text-align: center;
+    }
+
+    .bottom-nav div {
+      padding: 10px;
+      color: #665b80;
+      font-size: 13px;
+    }
+
+    .bottom-nav .selected {
+      color: #5c1db8;
+      font-weight: bold;
+    }
+
+    @media (max-width: 760px) {
+      .grid,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .machine-stats {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .ready {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="brand">
+    <div class="logo">TT</div>
+    <div>
+      <h1>TT Mining</h1>
+      <small>Trade Token • Pi Testnet</small>
+    </div>
+  </div>
+
+  <div class="ready">
+    <span>●</span> READY
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="grid">
+
+    <!-- PI LOGIN -->
+    <section class="card signin">
+      <h2>Sign in with Pi Account</h2>
+
+      <p>
+        Access your TT Mining dashboard using your Pi Network account.
+      </p>
+
+      <div class="benefits">
+        🛡️ Secure Pi authentication<br>
+        👤 Pioneer account access<br>
+        ⚡ TT mining rewards
+      </div>
+
+      <button class="pi-btn" onclick="piLogin()">
+        🟣 Sign in with Pi
+      </button>
+
+      <p id="loginStatus">
+        Pi authentication is not connected yet.
+      </p>
+    </section>
+
+    <!-- CORE MACHINE -->
+    <section class="card machine-card" id="machineCard">
+
+      <div class="active" id="machineStatus">
+        READY
+      </div>
+
+      <h2>Core Machine v4</h2>
+      <p>Upgraded mining power and efficiency</p>
+
+      <div class="machine">
+        <div class="core">
+          <div class="core-ring"></div>
+          <div class="core-label">CORE V4</div>
+        </div>
+      </div>
+
+      <div class="machine-stats">
+        <div>
+          Power
+          <strong>4.00 TH/s</strong>
+        </div>
+
+        <div>
+          Efficiency
+          <strong>120%</strong>
+        </div>
+
+        <div>
+          Durability
+          <strong>98%</strong>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- WELCOME -->
+  <section class="card welcome">
+
+    <div class="welcome-top">
+      <div>
+        <h2>👋 Welcome, Pioneer!</h2>
+        <p>TT Mining Testnet Environment</p>
+      </div>
+
+      <strong>🏆 Pioneer Status: Active</strong>
+    </div>
+
+    <div class="stats">
+
+      <div class="stat">
+        ⚡ Mining Rate
+        <strong>+0.25</strong>
+        TT / hour
+      </div>
+
+      <div class="stat">
+        👥 Pioneer Bonus
+        <strong>+20%</strong>
+        Mining Boost
+      </div>
+
+      <div class="stat">
+        ⭐ Trust Score
+        <strong>500</strong>
+        / 1000
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- MINING -->
+  <section class="card" style="margin-top:18px">
+
+    <div class="alert" id="alert">
+      ⚠️ Pi authentication is required before real Pi account mining.
+    </div>
+
+    <div class="stats">
+
+      <div class="stat">
+        🪙 Session Earned
+        <strong id="earned">0.00000000</strong>
+        TT
+      </div>
+
+      <div class="stat">
+        🟣 Session Status
+        <strong id="sessionStatus">Idle</strong>
+      </div>
+
+      <div class="stat">
+        ⏱️ Time Left
+        <strong id="timeLeft">00:00:00</strong>
+      </div>
+
+    </div>
+
+    <div class="progress">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <button class="mine-btn" id="startBtn" onclick="startMining()">
+      ⛏️ Start 24H Mining
+    </button>
+
+    <button class="claim-btn" id="claimBtn" onclick="claimMining()" disabled>
+      💰 Claim TT
+    </button>
+
+    <p class="status" id="message">
+      Mining is currently inactive.
+    </p>
+
+  </section>
+
+  <nav class="bottom-nav">
+    <div class="selected">⛏️<br>Mining</div>
+    <div>▦<br>Dashboard</div>
+    <div>👥<br>Referrals</div>
+    <div>👤<br>Profile</div>
+  </nav>
+
 </main>
+
 <script>
-const API_BASE="https://digitaltoken09-github-io.onrender.com",MINING_RATE=.25,MINING_DURATION=86400000;let piUser=null,piAccessToken=null,miningStartTime=null,miningEndTime=null,miningTimer=null;const $=id=>document.getElementById(id);
-function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function headers(){return{"Content-Type":"application/json",Authorization:"Bearer "+piAccessToken}}async function api(path,opt={}){opt.headers={...headers(),...(opt.headers||{})};const r=await fetch(API_BASE+path,opt);let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||"Request failed ("+r.status+")");return d}
-try{Pi.init({version:"2.0",sandbox:true})}catch(e){console.error(e)}function incompletePayment(p){console.log("Incomplete payment",p)}
-async function loginPi(){const b=$("piLogin"),st=$("userStatus");try{st.textContent="Connecting to Pi...";b.disabled=true;const a=await Pi.authenticate(["username"],incompletePayment);if(!a?.user?.username||!a.accessToken)throw new Error("Pi did not return a valid account session.");piUser=a.user;piAccessToken=a.accessToken;$("userName").textContent="@"+piUser.username;$("referral").textContent="@"+piUser.username;st.textContent="Pi account connected";$("startMining").disabled=false;$("message").disabled=false;$("send").disabled=false;$("buyPet").disabled=false;b.textContent="✓ Pi Connected";addActivity("🔐","Pi account connected","Just now");await api("/api/users",{method:"POST",body:JSON.stringify({piUsername:piUser.username})});await loadBalance();await loadRep();await restoreServer()}catch(e){console.error(e);st.textContent="Pi authentication failed: "+e.message;b.disabled=false}}
-async function loadBalance(){try{const d=await api("/api/balance?piUsername="+encodeURIComponent(piUser.username));$("available").textContent=Number(d.balanceADT||0).toFixed(8)+" ADT"}catch(e){console.warn(e)}}async function loadRep(){try{const d=await api("/api/reputation?piUsername="+encodeURIComponent(piUser.username));$("reputScore").textContent=Number(d.reputation?.score||0)+" RP";$("rankLevel").textContent=d.reputation?.level||"New Miner"}catch(e){console.warn(e)}}
-function applySession(d){const sv=d?.startedAt||d?.started_at,ev=d?.endsAt||d?.ends_at;if(!sv)return false;const s=new Date(sv).getTime(),e=ev?new Date(ev).getTime():s+MINING_DURATION;if(!Number.isFinite(s)||!Number.isFinite(e)||e<=s)return false;miningStartTime=s;miningEndTime=e;localStorage.setItem("adtMiningStart",s);localStorage.setItem("adtMiningEnd",e);localStorage.setItem("adtMiningActive","true");return true}
-async function startMining(){if(!piUser)return;const b=$("startMining");b.disabled=true;$("statusTitle").textContent="⛏️ Connecting to ADT Network";try{const d=await api("/api/mining/start",{method:"POST",body:JSON.stringify({piUsername:piUser.username})});if(!applySession(d))throw new Error("Server returned an invalid mining session.");startUI();addActivity("⛏️","24H ADT mining started","Just now")}catch(e){try{const d=await api("/api/mining/status?piUsername="+encodeURIComponent(piUser.username));if(d.active&&applySession(d)){if(Date.now()>=miningEndTime)completeUI();else startUI();return}}catch{}$("statusTitle").textContent="Mining connection error";$("statusSub").textContent=e.message;b.disabled=false}}
-async function restoreServer(){try{const d=await api("/api/mining/status?piUsername="+encodeURIComponent(piUser.username));if(d.active&&applySession(d)){if(Date.now()<miningEndTime)startUI();else completeUI()}else restoreLocal()}catch(e){restoreLocal()}}
-function startUI(){$("miningMachine").className="mining-machine mining-active";$("sessionLabel").textContent="MINING";$("sessionStatus").textContent="Active";$("statusTitle").textContent="⛏️ Mining is active";$("statusSub").textContent="Your ADT 24-hour session is currently running.";$("timerBox").style.display="block";$("startMining").disabled=true;$("claim").disabled=true;$("mineAgain").disabled=true;if(miningTimer)clearInterval(miningTimer);tick();miningTimer=setInterval(tick,1000)}
-function tick(){if(!miningEndTime)return;let r=miningEndTime-Date.now();if(r<=0){clearInterval(miningTimer);miningTimer=null;completeUI();return}const sec=Math.floor(r/1000),h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;$("timer").textContent=String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");const elapsed=Math.max(0,Math.min(MINING_DURATION,Date.now()-miningStartTime));$("progress").style.width=(elapsed/MINING_DURATION*100)+"%";$("sessionEarned").textContent=(MINING_RATE*elapsed/3600000).toFixed(8)+" ADT"}
-function completeUI(){$("miningMachine").className="mining-machine mining-off";$("sessionLabel").textContent="COMPLETE";$("sessionStatus").textContent="Ready to claim";$("statusTitle").textContent="🎉 Mining session completed";$("statusSub").textContent="Your 24-hour session is ready to be claimed.";$("timerBox").style.display="block";$("timer").textContent="00:00:00";$("progress").style.width="100%";$("claim").disabled=false;$("mineAgain").disabled=true;localStorage.removeItem("adtMiningActive")}
-async function claim(){const b=$("claim");b.disabled=true;try{const d=await api("/api/mining/stop",{method:"POST",body:JSON.stringify({piUsername:piUser.username})});$("available").textContent=Number(d.balanceADT||0).toFixed(8)+" ADT";$("sessionEarned").textContent=Number(d.earnedADT||0).toFixed(8)+" ADT";$("sessionLabel").textContent="CLAIMED";$("sessionStatus").textContent="Claimed";$("statusTitle").textContent="✅ ADT successfully claimed";$("statusSub").textContent="Your reward was added to your ADT balance.";$("mineAgain").disabled=false;addActivity("💰","Claimed "+Number(d.earnedADT||0).toFixed(8)+" ADT","Just now");await loadRep();localStorage.removeItem("adtMiningStart");localStorage.removeItem("adtMiningEnd");localStorage.removeItem("adtMiningActive");miningStartTime=null;miningEndTime=null}catch(e){$("statusTitle").textContent="Claim verification failed";$("statusSub").textContent=e.message;b.disabled=false}}
-function restoreLocal(){const a=localStorage.getItem("adtMiningActive"),s=Number(localStorage.getItem("adtMiningStart")),e=Number(localStorage.getItem("adtMiningEnd"));if(a==="true"&&s>0&&e>s){miningStartTime=s;miningEndTime=e;if(Date.now()<e)startUI();else completeUI()}}
-async function buyPet(){const st=$("paymentStatus"),title=st.querySelector(".status-title"),sub=st.querySelector(".status-sub");if(!piUser)return;title.textContent="Opening Pi payment...";sub.textContent="Waiting for payment confirmation.";try{await Pi.createPayment({amount:.1,memo:"ADT Digital Pet",metadata:{product:"adt-developer-test-pet",username:piUser.username,testnet:true}},{onReadyForServerApproval:async id=>{try{await api("/api/payments/approve",{method:"POST",body:JSON.stringify({paymentId:id,piUsername:piUser.username})});title.textContent="Payment approved";sub.textContent="Confirm in Pi."}catch(e){title.textContent="Approval failed";sub.textContent=e.message}},onReadyForServerCompletion:async(id,txid)=>{try{await api("/api/payments/complete",{method:"POST",body:JSON.stringify({paymentId:id,txid,piUsername:piUser.username,product:"adt-developer-test-pet"})});title.textContent="✅ Pet Purchased";sub.textContent="ADT Digital Pet successfully purchased.";$("buyPet").disabled=true;$("buyPet").textContent="✅ Pet Purchased";addActivity("🐾","ADT Digital Pet purchased","Just now");await loadRep()}catch(e){title.textContent="Completion failed";sub.textContent=e.message}},onCancel:()=>{title.textContent="Payment cancelled";sub.textContent="No Pi was charged."},onError:e=>{console.error(e);title.textContent="Payment error";sub.textContent="Please try again."}})}catch(e){title.textContent="Unable to create payment";sub.textContent=e.message}}
-function send(){const i=$("message"),m=i.value.trim();if(!m)return;const p=document.createElement("p");p.innerHTML="<span class='chat-user'>@"+esc(piUser?.username||"You")+":</span> "+esc(m);$("chat").appendChild(p);$("chat").scrollTop=$("chat").scrollHeight;i.value=""}function addActivity(icon,text,time){const li=document.createElement("li");li.innerHTML="<div class='activity-icon'>"+esc(icon)+"</div><div class='activity-text'><strong>"+esc(text)+"</strong><div class='activity-time'>"+esc(time)+"</div></div>";$("activity").prepend(li)}
-$("piLogin").onclick=loginPi;$("startMining").onclick=startMining;$("claim").onclick=claim;$("mineAgain").onclick=startMining;$("buyPet").onclick=buyPet;$("send").onclick=send;restoreLocal();
-</script></body></html>
+
+const API =
+  "https://trade-token-github-io.onrender.com";
+
+/*
+  Development wallet only.
+  This will be replaced by authenticated
+  Pi account identity after official Pi SDK setup.
+*/
+
+const wallet =
+  localStorage.getItem("tt_test_wallet") ||
+  "testwallet123";
+
+localStorage.setItem(
+  "tt_test_wallet",
+  wallet
+);
+
+let miningData = null;
+
+/* --------------------------------
+   PI LOGIN PLACEHOLDER
+-------------------------------- */
+
+function piLogin() {
+
+  document.getElementById("loginStatus").innerText =
+    "Pi authentication setup required.";
+
+  document.getElementById("alert").innerText =
+    "⚠️ Connect the official Pi SDK before using real Pi account authentication.";
+
+  /*
+    DO NOT fake Pi authentication here.
+
+    Official Pi SDK authentication will be
+    inserted here after the correct Developer
+    Portal configuration is confirmed.
+  */
+}
+
+
+/* --------------------------------
+   START MINING
+-------------------------------- */
+
+async function startMining() {
+
+  const button =
+    document.getElementById("startBtn");
+
+  button.disabled = true;
+
+  try {
+
+    const response =
+      await fetch(
+        API + "/api/mining/start",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            wallet: wallet
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Mining start failed"
+      );
+    }
+
+    miningData = data;
+
+    document
+      .getElementById("machineCard")
+      .classList.add("machine-active");
+
+    document
+      .getElementById("machineStatus")
+      .innerText = "MINING";
+
+    document
+      .getElementById("sessionStatus")
+      .innerText = "Active";
+
+    document
+      .getElementById("message")
+      .innerText =
+        "⛏️ Core Machine v4 is mining.";
+
+    document
+      .getElementById("alert")
+      .innerText =
+        "⚡ TT mining session started successfully.";
+
+    updateTimer();
+
+  } catch (error) {
+
+    button.disabled = false;
+
+    document
+      .getElementById("message")
+      .innerText =
+        "❌ " + error.message;
+  }
+}
+
+
+/* --------------------------------
+   MINING STATUS
+-------------------------------- */
+
+async function checkStatus() {
+
+  try {
+
+    const response =
+      await fetch(
+        API +
+        "/api/mining/status/" +
+        encodeURIComponent(wallet)
+      );
+
+    const data =
+      await response.json();
+
+    document
+      .getElementById("earned")
+      .innerText =
+        Number(data.earned || 0)
+          .toFixed(8);
+
+    if (data.mining) {
+
+      miningData = data;
+
+      document
+        .getElementById("sessionStatus")
+        .innerText =
+        "Mining";
+
+      document
+        .getElementById("machineStatus")
+        .innerText =
+        "MINING";
+
+      document
+        .getElementById("machineCard")
+        .classList.add("machine-active");
+
+      document
+        .getElementById("startBtn")
+        .disabled = true;
+
+      updateTimer();
+
+    } else if (
+      data.endTime &&
+      !data.claimed
+    ) {
+
+      document
+        .getElementById("sessionStatus")
+        .innerText =
+        "Completed";
+
+      document
+        .getElementById("claimBtn")
+        .disabled = false;
+
+      document
+        .getElementById("startBtn")
+        .disabled = true;
+
+      document
+        .getElementById("machineStatus")
+        .innerText =
+        "COMPLETE";
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "Status error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* --------------------------------
+   TIMER
+-------------------------------- */
+
+function updateTimer() {
+
+  if (!miningData) return;
+
+  const end =
+    miningData.endTime;
+
+  const now =
+    Date.now();
+
+  const remaining =
+    Math.max(
+      0,
+      end - now
+    );
+
+  const total =
+    24 * 60 * 60 * 1000;
+
+  const elapsed =
+    total - remaining;
+
+  const percent =
+    Math.min(
+      100,
+      Math.max(
+        0,
+        (elapsed / total) * 100
+      )
+    );
+
+  document
+    .getElementById("progress")
+    .style.width =
+    percent + "%";
+
+  const hours =
+    Math.floor(
+      remaining / 3600000
+    );
+
+  const minutes =
+    Math.floor(
+      (remaining % 3600000) /
+      60000
+    );
+
+  const seconds =
+    Math.floor(
+      (remaining % 60000) /
+      1000
+    );
+
+  document
+    .getElementById("timeLeft")
+    .innerText =
+    String(hours).padStart(2,"0") +
+    ":" +
+    String(minutes).padStart(2,"0") +
+    ":" +
+    String(seconds).padStart(2,"0");
+
+  if (remaining <= 0) {
+
+    document
+      .getElementById("sessionStatus")
+      .innerText =
+      "Completed";
+
+    document
+      .getElementById("claimBtn")
+      .disabled = false;
+
+    document
+      .getElementById("machineStatus")
+      .innerText =
+      "COMPLETE";
+
+    document
+      .getElementById("machineCard")
+      .classList.remove(
+        "machine-active"
+      );
+
+  }
+
+}
+
+
+/* --------------------------------
+   CLAIM
+-------------------------------- */
+
+async function claimMining() {
+
+  const button =
+    document.getElementById("claimBtn");
+
+  button.disabled = true;
+
+  try {
+
+    const response =
+      await fetch(
+        API + "/api/mining/claim",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            wallet: wallet
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        "Claim failed"
+      );
+    }
+
+    document
+      .getElementById("message")
+      .innerText =
+      "🎉 +" +
+      data.reward +
+      " TT claimed successfully.";
+
+    document
+      .getElementById("earned")
+      .innerText =
+      "0.00000000";
+
+    document
+      .getElementById("timeLeft")
+      .innerText =
+      "00:00:00";
+
+    document
+      .getElementById("sessionStatus")
+      .innerText =
+      "Idle";
+
+    document
+      .getElementById("machineStatus")
+      .innerText =
+      "READY";
+
+    document
+      .getElementById("machineCard")
+      .classList.remove(
+        "machine-active"
+      );
+
+    document
+      .getElementById("startBtn")
+      .disabled = false;
+
+  } catch (error) {
+
+    button.disabled = false;
+
+    document
+      .getElementById("message")
+      .innerText =
+      "❌ " + error.message;
+
+  }
+
+}
+
+
+/* --------------------------------
+   AUTO UPDATE
+-------------------------------- */
+
+setInterval(
+  checkStatus,
+  10000
+);
+
+setInterval(
+  updateTimer,
+  1000
+);
+
+checkStatus();
+
+</script>
+
+</body>
+</html>
